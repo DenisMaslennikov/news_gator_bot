@@ -14,6 +14,8 @@ telethon = "^1.36.0"
 sqlalchemy = "^2.0.32"
 asyncpg = "^0.29.0"
 alembic = "^1.13.2"
+pydantic-settings = "^2.4.0"
+aiologger = "^0.7.0"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.26.0" # https://pypi.org/project/ipython/
