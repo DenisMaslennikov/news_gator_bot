@@ -16,8 +16,19 @@ services:
     env_file: ./config/.env
     depends_on:
       - db
+      - rabbitmq
     volumes:
       - ".:/app"
+
+  rabbitmq:
+    build:
+      context: ./docker/rabbitmq
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    ports:
+      - "15672:15672"
+    env_file: ./config/.env
 
 volumes:
   pgdata:
