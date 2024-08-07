@@ -12,7 +12,7 @@ async def session_scope() -> Session:
     sess = None
     conn=None
     try:
-        engine = create_async_engine(settings.database_uri)
+        engine = create_async_engine(settings.async_database_uri)
         conn = engine.connect()
         session = async_sessionmaker(bind=conn)
         sess = session()
