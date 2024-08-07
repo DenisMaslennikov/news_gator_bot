@@ -10,6 +10,7 @@ from config import settings
 async def session_scope() -> Session:
     """Создание контекстного менеджера сессии и оборачивание её в транзакцию."""
     sess = None
+    conn=None
     try:
         engine = create_async_engine(settings.database_uri)
         conn = engine.connect()
@@ -30,6 +31,13 @@ async def session_scope() -> Session:
         raise e
     else:
         await sess.commit()
-
-
+    finally:
+        if conn is not None:
+            # Закрытие соединения.
+            await conn.close()
+        if sess is not None:
+            # Закрытие сессии.
+            await sess.close()
+            # Очистка сессии.
+            await sess.invalidate()
 
