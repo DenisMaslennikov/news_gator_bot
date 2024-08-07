@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16
+    env_file: ./config/.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  bot:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: ./docker/bot/Dockerfile
+    command: bash run_dev.sh
+    env_file: ./config/.env
+    depends_on:
+      - db
+    volumes:
+      - ".:/app"
+
+volumes:
+  pgdata:
