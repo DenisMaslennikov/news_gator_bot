@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from app_logging import logger
 from config import settings
 
+
 async def session_scope() -> Session:
     """Создание контекстного менеджера сессии и оборачивание её в транзакцию."""
     sess = None
@@ -26,8 +27,8 @@ async def session_scope() -> Session:
         if sess is not None:
             # Откатываем транзакцию.
             await sess.rollback()
-        logger.error(f'Необработанная ошибка: {str(e)}')
-        logger.error(traceback.format_exc())
+        await logger.error(f'Необработанная ошибка: {str(e)}')
+        await logger.error(traceback.format_exc())
         raise e
     else:
         await sess.commit()
@@ -40,4 +41,3 @@ async def session_scope() -> Session:
             await sess.close()
             # Очистка сессии.
             await sess.invalidate()
-
