@@ -2,7 +2,6 @@ import asyncio
 
 from app.logging import logger
 from app.bot import bot, dp
-from app.bot.functions import send_message_to_user
 
 
 async def main():

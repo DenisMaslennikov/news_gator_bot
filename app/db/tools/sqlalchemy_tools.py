@@ -9,7 +9,7 @@ from app.db.models.base import Base
 async def get_or_create(session: AsyncSession, model: Type[Base], **kwargs) -> Tuple[Base, bool]:
     stmt = select(model).filter_by(**kwargs)
     result = await session.execute(stmt)
-    instance = result.scalars().first()
+    instance = result.scalar_one_or_none()
 
     if instance:
         return instance, False

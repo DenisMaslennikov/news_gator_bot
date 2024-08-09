@@ -75,6 +75,6 @@ class UserSubscription(Base):
     news_source_id = Column(Uuid(as_uuid=True), ForeignKey('nf_news_source.id'))
     news_category_id = Column(SmallInteger, ForeignKey('cl_news_category.id'))
 
-    user = relationship('User')
+    user = relationship('User', back_populates='subscriptions')
     news_source = relationship('NewsSource')
     news_category = relationship('NewsCategory')

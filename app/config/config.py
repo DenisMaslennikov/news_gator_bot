@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     telegram_token: str
 
     # Корневая директория проекта
-    base_dir: Path = Field(default=Path(__file__).resolve().parent.parent)
+    base_dir: Path = Field(default=Path(__file__).resolve().parent.parent.parent)
 
     model_config = SettingsConfigDict()
 
