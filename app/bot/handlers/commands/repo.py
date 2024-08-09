@@ -3,7 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.db.models import User
-from app.db.tools.sqlalchemy_tools import get_or_create
+from app.db.tools.sqlalchemy_tools import get_or_create, joinedload_all_relationships
+from app.logging import logger
 
 
 async def register_user_repo(session: AsyncSession, user_id: int) -> str:
@@ -19,14 +20,22 @@ async def register_user_repo(session: AsyncSession, user_id: int) -> str:
     return 'Вы уже зарегистрированы для управления подписками используйте меню /subscription'
 
 
-async def get_user_repo(session: AsyncSession, user_id: int) -> User | None:
+async def get_user_repo(session: AsyncSession, user_id: int, *options, joinedload_relationships: bool = False) -> User | None:
     """
     Получение пользователя по id.
     :param session:  Объект сессии SQLAlchemy.
     :param user_id: Идентификатор пользователя.
     :return: Объект модели User или None если пользователь не найден.
     """
-    stmt = select(User).filter(User.user_id == user_id).options(joinedload(User.subscriptions))
+    if options and joinedload_relationships:
+        await logger.warning('Некорректные параметры функции')
+        raise ValueError('Нельзя использовать options и joinedload_relationships одновременно.')
+    stmt = select(User).filter(User.user_id == user_id)
+    if options:
+        stmt = stmt.options(*options)
+    if joinedload_relationships:
+        options = joinedload_all_relationships(User)
+        stmt = stmt.options(*options)
     result = await session.execute(stmt)
     user = result.scalars().first()
     return user

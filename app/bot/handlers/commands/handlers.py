@@ -65,13 +65,13 @@ async def unregister_confirm(message: types.Message, state: FSMContext) -> None:
     :param state: Объект состояния.
     """
     if message.text == 'yes':
-        await logger.debug('Подтверждено удаление')
+        await logger.debug(f'Подтверждено удаление пользователя {message.from_user.id}')
         if await delete_user(message.from_user.id):
             await message.answer('Регистрация успешно удалена.')
         else:
             await message.answer('Пользователь не найден.')
     else:
-        await logger.debug('Удаление отменено')
+        await logger.debug(f'Удаление пользователя {message.from_user.id} отменено')
         await message.answer('Удаление регистрации отменено.')
     await state.clear()
 
