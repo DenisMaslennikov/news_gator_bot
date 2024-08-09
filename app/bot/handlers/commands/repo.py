@@ -20,20 +20,20 @@ async def register_user_repo(session: AsyncSession, user_id: int) -> str:
     return 'Вы уже зарегистрированы для управления подписками используйте меню /subscription'
 
 
-async def get_user_repo(session: AsyncSession, user_id: int, *options, joinedload_relationships: bool = False) -> User | None:
+async def get_user_repo(session: AsyncSession, user_id: int, *options, joinedload_all: bool = False) -> User | None:
     """
     Получение пользователя по id.
     :param session:  Объект сессии SQLAlchemy.
     :param user_id: Идентификатор пользователя.
     :return: Объект модели User или None если пользователь не найден.
     """
-    if options and joinedload_relationships:
+    if options and joinedload_all:
         await logger.warning('Некорректные параметры функции')
-        raise ValueError('Нельзя использовать options и joinedload_relationships одновременно.')
+        raise ValueError('Нельзя использовать options и joinedload_all одновременно.')
     stmt = select(User).filter(User.user_id == user_id)
     if options:
         stmt = stmt.options(*options)
-    if joinedload_relationships:
+    if joinedload_all:
         options = joinedload_all_relationships(User)
         stmt = stmt.options(*options)
     result = await session.execute(stmt)
