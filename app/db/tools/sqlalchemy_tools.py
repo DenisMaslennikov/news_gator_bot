@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.db.models.base import Base
 
 
-def get_or_create(session: Session, model: Type[Base], **kwargs) -> Tuple[Base, bool]:
+async def get_or_create(session: Session, model: Type[Base], **kwargs) -> Tuple[Base, bool]:
     instance = session.query(model).filter_by(**kwargs).first()
     if instance:
         return instance, False
