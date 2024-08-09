@@ -2,7 +2,7 @@
 
 Revision ID: 0001
 Revises: 
-Create Date: 2024-08-09 12:25:20.940026
+Create Date: 2024-08-09 19:05:48.947380
 
 """
 from typing import Sequence, Union
@@ -44,9 +44,9 @@ def upgrade() -> None:
     comment='Классификатор типа выражения для парсинга.'
     )
     op.create_table('nf_news_source',
-    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('url', sa.Text(), nullable=False),
-    sa.Column('update_interval', sa.SmallInteger(), nullable=False),
+    sa.Column('update_interval', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=255), nullable=False),
     sa.Column('comment', sa.Text(), nullable=True),
     sa.Column('source_type_id', sa.SmallInteger(), nullable=False),
@@ -57,7 +57,7 @@ def upgrade() -> None:
     comment='Источники новостей.'
     )
     op.create_table('nf_news',
-    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('title', sa.Text(), nullable=False),
     sa.Column('description', sa.Text(), nullable=False),
     sa.Column('content', sa.Text(), nullable=True),
@@ -73,7 +73,7 @@ def upgrade() -> None:
     comment='Новости.'
     )
     op.create_table('nf_parsing_expressions',
-    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('parse_expression_type_id', sa.SmallInteger(), nullable=False),
     sa.Column('parse_expression', sa.Text(), nullable=False),
     sa.Column('news_source_id', sa.Uuid(), nullable=False),
@@ -84,7 +84,7 @@ def upgrade() -> None:
     comment='Выражения для парсинга новостей.'
     )
     op.create_table('nf_user_subscription',
-    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('news_source_id', sa.Uuid(), nullable=True),
     sa.Column('news_category_id', sa.SmallInteger(), nullable=True),
@@ -95,7 +95,7 @@ def upgrade() -> None:
     comment='Подписки пользователя.'
     )
     op.create_table('nf_news_images',
-    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('file_name', sa.String(), nullable=False),
     sa.Column('news_id', sa.Uuid(), nullable=False),
     sa.ForeignKeyConstraint(['news_id'], ['nf_news.id'], ),

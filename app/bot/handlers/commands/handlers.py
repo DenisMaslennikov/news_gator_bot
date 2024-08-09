@@ -3,9 +3,10 @@ from aiogram.dispatcher import router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
-from app.bot.handlers.commands.service import register_user, delete_user, get_user
-from app.bot.handlers.commands.stases import UnregisterConfirm
-from app.bot.handlers.keyboards.keyboards import news_source_keyboard
+from app.bot.handlers.commands.service import register_user, delete_user, get_user, subscription_status, subscribe_user, \
+    unsubscribe_user
+from app.bot.handlers.commands.stases import UnregisterConfirm, SubscriptionsController
+from app.bot.handlers.keyboards.keyboards import news_source_keyboard, unsubscribe_keyboard, subscribe_keyboard
 from app.logging import logger
 
 command_router = Router()
@@ -42,7 +43,10 @@ async def register_command_handler(message: types.Message) -> None:
     """
     user_id = message.from_user.id
     await logger.debug(f'получена команда register от пользователя {user_id}')
-    await message.answer(await register_user(user_id))
+    if await register_user(user_id):
+        await message.answer('Вы зарегистрированы')
+    else:
+        await message.answer('Вы уже зарегистрированы для управления подписками используйте меню /subscriptions')
 
 
 @command_router.message(Command('unregister'))
@@ -80,7 +84,7 @@ async def unregister_confirm(message: types.Message, state: FSMContext) -> None:
 @command_router.message(Command('subscriptions'))
 async def subscriptions_command_handler(message: types.Message, state: FSMContext) -> None:
     """
-    Обработчик команды управления подписками.
+    Обработчик команды подписок.
     :param message: Объект сообщения.
     :param state: Объект состояния.
     """
@@ -88,4 +92,53 @@ async def subscriptions_command_handler(message: types.Message, state: FSMContex
     if not get_user(message.from_user.id):
         await message.answer('Вы незарегистрированный. Зарегистрируйтесь сначала /register')
     else:
+        await state.set_state(SubscriptionsController.select_subscription)
         await message.answer('Возможные ресурсы для подписки', reply_markup=await news_source_keyboard())
+
+
+@command_router.callback_query(SubscriptionsController.select_subscription, F.data)
+async def subscriptions_callback_handler(callback: types.CallbackQuery, state: FSMContext) -> None:
+    """
+    Управление подпиской на конкретный ресурс.
+    :param callback: Объект CallbackQuery.
+    :param state: Объект состояния.
+    """
+    await logger.debug(f'Управление подпиской на {callback.data}')
+    news_source_id = callback.data
+    await callback.answer()
+
+    await state.update_data(news_source_id=news_source_id)
+
+    if await subscription_status(callback.from_user.id, news_source_id):
+        await callback.message.edit_text(
+            f'Управление подпиской', reply_markup=unsubscribe_keyboard
+        )
+    else:
+        await callback.message.edit_text(
+            f'Управление подпиской', reply_markup=subscribe_keyboard
+        )
+    await state.set_state(SubscriptionsController.update_subscription)
+
+
+@command_router.callback_query(SubscriptionsController.update_subscription, F.data)
+async def update_subscriptions_callback_handler(callback: types.CallbackQuery, state: FSMContext) -> None:
+    """
+    Управление подпиской на конкретный ресурс.
+    :param callback: Объект CallbackQuery.
+    :param state: Объект состояния.
+    """
+    await logger.debug(f'Обновление статуса подписки получен статус {callback.data}')
+    data = await state.get_data()
+    if callback.data.lower() == 'true':
+        await subscribe_user(callback.from_user.id, **data)
+        await callback.answer(f'Вы подписаны')
+    elif callback.data.lower() == 'back':
+        pass
+    elif callback.data.lower() == 'false':
+        await unsubscribe_user(callback.from_user.id, **data)
+        await callback.answer(f'Подписка отменена')
+    await callback.message.edit_text(
+        'Возможные ресурсы для подписки', reply_markup=await news_source_keyboard()
+    )
+    await state.set_state(SubscriptionsController.select_subscription)
+

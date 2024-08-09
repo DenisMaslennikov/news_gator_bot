@@ -1,12 +1,12 @@
-from sqlalchemy import select
+from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import User
+from app.db.models import User, UserSubscription
 from app.db.tools.sqlalchemy_tools import get_or_create, joinedload_all_relationships
 from app.logging import logger
 
 
-async def register_user_repo(session: AsyncSession, user_id: int) -> str:
+async def register_user_repo(session: AsyncSession, user_id: int) -> bool:
     """
     Регистрация нового пользователя в базе данных.
     :param session:  Объект сессии SQLAlchemy.
@@ -14,9 +14,8 @@ async def register_user_repo(session: AsyncSession, user_id: int) -> str:
     :return: Строка со статусом.
     """
     instance, created = await get_or_create(session, User, user_id=user_id)
-    if created:
-        return 'Вы зарегистрированы'
-    return 'Вы уже зарегистрированы для управления подписками используйте меню /subscription'
+    return created
+
 
 
 async def get_user_repo(session: AsyncSession, user_id: int, *options, joinedload_all: bool = False) -> User | None:
@@ -60,3 +59,38 @@ async def delete_user_repo(session: AsyncSession, user: User) -> None:
     """
     if user:
         await session.delete(user)
+
+
+async def get_subscription_repo(session: AsyncSession, user_id: int, news_source_id: str) -> UserSubscription:
+    """
+    Проверяет подписку у пользователя в базе данных.
+    :param session: Объект сессии SQLAlchemy.
+    :param user_id: Идентификатор пользователя.
+    :param news_source_id: Идентификатор ресурса.
+    :return: True если подписка есть False если подписки нет.
+    """
+    stmt = select(UserSubscription).filter(
+        UserSubscription.user_id == user_id, UserSubscription.news_source_id == news_source_id,
+    )
+    result = await session.execute(stmt)
+    return result.scalar()
+
+
+async def subscribe_user_repo(session: AsyncSession, user_id: int, news_source_id: str) -> None:
+    """
+    Подписывает пользователя на ресурс.
+    :param session: Объект сессии SQLAlchemy.
+    :param user_id: Идентификатор пользователя.
+    :param news_source_id: Идентификатор ресурса.
+    """
+    user_subscription = UserSubscription(user_id=user_id, news_source_id=news_source_id)
+    session.add(user_subscription)
+
+
+async def delete_subscription_repo(session: AsyncSession, subscription: UserSubscription) -> None:
+    """
+    Удаляет подписку пользователя на ресурс.
+    :param session: Объект сессии SQLAlchemy.
+    :param subscription: Объект подписки который необходимо удалить.
+    """
+    await session.delete(subscription)

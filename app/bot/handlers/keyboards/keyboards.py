@@ -14,5 +14,22 @@ async def news_source_keyboard() -> InlineKeyboardMarkup:
     keyword = InlineKeyboardBuilder()
     news_sources = await get_news_sources()
     for news_source in news_sources:
-        keyword.add(InlineKeyboardButton(text=news_source.title, callback_data=str(news_source.id)))
-    return keyword.as_markup()
+        keyword.add(
+            InlineKeyboardButton(text=news_source.title, callback_data=str(news_source.id))
+        )
+    return keyword.adjust(2).as_markup()
+
+
+unsubscribe_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [
+        InlineKeyboardButton(text='Отписаться', callback_data='false'),
+        InlineKeyboardButton(text='Назад', callback_data='back'),
+    ],
+])
+
+subscribe_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [
+        InlineKeyboardButton(text='Подписаться', callback_data='true'),
+        InlineKeyboardButton(text='Назад', callback_data='back'),
+    ],
+])
