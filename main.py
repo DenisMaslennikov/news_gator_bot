@@ -8,9 +8,8 @@ from app.bot.functions import send_message_to_user
 async def main():
     """Основная функция запускающая все процессы."""
     try:
-        await logger.debug('success')
-        await send_message_to_user(2093468718, 'ааа')
-        await dp.start_polling(bot)
+        task = asyncio.create_task(dp.start_polling(bot))
+        await asyncio.gather(task)
     except Exception as e:
         raise e
     finally:

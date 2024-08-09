@@ -36,5 +36,6 @@ async def register_command_handler(message: types.Message) -> None:
     :param message:  Объект сообщения.
     """
     user_id = message.from_user.id
+    await logger.debug(f'получена команда register от пользователя {user_id}')
     await message.answer(await register_user(user_id))
 
