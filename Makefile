@@ -12,5 +12,5 @@ drop: ## Остановить и удалить контейнеры Docker
 lock: ## Обновить зависимости проекта с использованием poetry
 	docker compose run --build --user=root --rm $(CONTAINER_NAME) poetry lock
 
-migration:  ## Создать миграции make migrations MSG="Добавить новую таблицу users"
-	docker compose --env-file config/.env run --user=root --rm $(CONTAINER_NAME) ./run_alembic.sh "$(MSG)"
+migrations:  ## Создать миграции make migrations MSG="Добавить новую таблицу users"
+	docker compose --env-file config/.env run --user=root --rm $(CONTAINER_NAME) python alembic_autogenerate.py "$(MSG)"

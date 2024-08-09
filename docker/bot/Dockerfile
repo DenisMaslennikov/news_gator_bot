@@ -43,7 +43,8 @@ COPY ./docker/utils/entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x '/wait-for-it.sh' \
   && chmod +x '/docker-entrypoint.sh' \
   # Замена разделителя строк CRLF на LF для пользователей Windows:
-  && sed -i 's/\r$//g' '/docker-entrypoint.sh'
+  && sed -i 's/\r$//g' '/docker-entrypoint.sh' \
+  && sed -i 's/\r$//g' '/wait-for-it.sh'
 
 # С помощью пользовательской точки входа мы настраиваем, как загружается наше приложение:
 ENTRYPOINT ["/docker-entrypoint.sh"]
