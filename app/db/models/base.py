@@ -1,7 +1,8 @@
-from sqlalchemy.orm import declarative_base, declared_attr
+from sqlalchemy.orm import declared_attr, as_declarative
 
 
-class BaseCls:
+@as_declarative()
+class Base:
     """Класс базового объекта для моделей."""
     @declared_attr
     def __table_args__(cls):
@@ -11,4 +12,4 @@ class BaseCls:
         return cls.__table_args__
 
 
-Base = declarative_base(cls=BaseCls)
+# Base = declarative_base(cls=BaseCls)

@@ -1,6 +1,7 @@
 from aiogram import Router, types
 from aiogram.filters import Command
 
+from app.bot.handlers.commands.service import register_user
 from app.logging import logger
 
 command_router = Router()
@@ -11,7 +12,7 @@ async def start_command_handler(message: types.Message) -> None:
     """
     Обработчик команды start и help.
 
-    :param message: Объект сообщения от пользователя.
+    :param message: Объект сообщения.
     """
     user_id = message.from_user.id
     await logger.debug(f'получена команда "start" от пользователя {user_id}')
@@ -25,3 +26,15 @@ async def start_command_handler(message: types.Message) -> None:
 /help - помощь
         '''
     )
+
+
+@command_router.message(Command('register'))
+async def register_command_handler(message: types.Message) -> None:
+    """
+    Обработчик команды register.
+
+    :param message:  Объект сообщения.
+    """
+    user_id = message.from_user.id
+    await message.answer(await register_user(user_id))
+

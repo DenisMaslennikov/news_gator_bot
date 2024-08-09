@@ -2,14 +2,14 @@
 
 Revision ID: 0001
 Revises: 
-Create Date: 2024-08-07 21:38:21.045580
+Create Date: 2024-08-09 12:25:20.940026
 
 """
 from typing import Sequence, Union
 
+from alembic import op
 import sqlalchemy as sa
 
-from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '0001'
@@ -28,17 +28,20 @@ def upgrade() -> None:
     op.create_table('cl_news_category',
     sa.Column('id', sa.SmallInteger(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    comment='Категории для новостей.'
     )
     op.create_table('cl_news_source_type',
     sa.Column('id', sa.SmallInteger(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    comment='Тип источника новости.'
     )
     op.create_table('cl_parse_expression_type',
     sa.Column('id', sa.SmallInteger(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    comment='Классификатор типа выражения для парсинга.'
     )
     op.create_table('nf_news_source',
     sa.Column('id', sa.Uuid(), nullable=False),
@@ -50,7 +53,8 @@ def upgrade() -> None:
     sa.Column('default_news_category_id', sa.SmallInteger(), nullable=True),
     sa.ForeignKeyConstraint(['default_news_category_id'], ['cl_news_category.id'], ),
     sa.ForeignKeyConstraint(['source_type_id'], ['cl_news_source_type.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    comment='Источники новостей.'
     )
     op.create_table('nf_news',
     sa.Column('id', sa.Uuid(), nullable=False),
@@ -65,7 +69,8 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['news_category_id'], ['cl_news_category.id'], ),
     sa.ForeignKeyConstraint(['news_source_id'], ['nf_news_source.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('news_url')
+    sa.UniqueConstraint('news_url'),
+    comment='Новости.'
     )
     op.create_table('nf_parsing_expressions',
     sa.Column('id', sa.Uuid(), nullable=False),
@@ -75,7 +80,8 @@ def upgrade() -> None:
     sa.Column('parsing_level', sa.SmallInteger(), nullable=False),
     sa.ForeignKeyConstraint(['news_source_id'], ['nf_news_source.id'], ),
     sa.ForeignKeyConstraint(['parse_expression_type_id'], ['cl_parse_expression_type.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    comment='Выражения для парсинга новостей.'
     )
     op.create_table('nf_user_subscription',
     sa.Column('id', sa.Uuid(), nullable=False),
@@ -85,14 +91,16 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['news_category_id'], ['cl_news_category.id'], ),
     sa.ForeignKeyConstraint(['news_source_id'], ['nf_news_source.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['bot_users.user_id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    comment='Подписки пользователя.'
     )
     op.create_table('nf_news_images',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('file_name', sa.String(), nullable=False),
     sa.Column('news_id', sa.Uuid(), nullable=False),
     sa.ForeignKeyConstraint(['news_id'], ['nf_news.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    comment='Изображения к новостям.'
     )
     # ### end Alembic commands ###
 
