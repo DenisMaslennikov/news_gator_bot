@@ -1,17 +1,19 @@
+import contextlib
 import traceback
 
 from sqlalchemy.exc import OperationalError
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Session
 
-from app_logging import logger
+from app.logging import logger
 from config import settings
 
 
+@contextlib.contextmanager
 async def session_scope() -> Session:
     """Создание контекстного менеджера сессии и оборачивание её в транзакцию."""
     sess = None
-    conn=None
+    conn = None
     try:
         engine = create_async_engine(settings.async_database_uri)
         conn = engine.connect()

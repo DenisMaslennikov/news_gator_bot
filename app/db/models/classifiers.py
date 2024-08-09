@@ -1,9 +1,10 @@
-from sqlalchemy import SmallInteger, String, Column
+from sqlalchemy import Column, SmallInteger, String
 
-from db.models.base import Base
+from app.db.models.base import Base
 
 
 class ParseExpressionType(Base):
+    """Классификатор типа выражения для парсинга."""
     __tablename__ = 'cl_parse_expression_type'
 
     id = Column(SmallInteger, primary_key=True)
@@ -11,6 +12,7 @@ class ParseExpressionType(Base):
 
 
 class NewsCategory(Base):
+    """Категории для новостей."""
     __tablename__ = 'cl_news_category'
 
     id = Column(SmallInteger, primary_key=True)
@@ -18,6 +20,7 @@ class NewsCategory(Base):
 
 
 class NewsSourceType(Base):
+    """Тип источника новости."""
     __tablename__ = 'cl_news_source_type'
 
     id = Column(SmallInteger, primary_key=True)

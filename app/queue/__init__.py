@@ -1,4 +1,4 @@
-from .queue import parse_queue, message_queue
+from .queue import message_queue, parse_queue
 
 __all__ = [
     'parse_queue',

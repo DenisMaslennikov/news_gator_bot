@@ -2,7 +2,6 @@ import sys
 
 from alembic import command
 from alembic.config import Config as AlembicConfig
-
 from config import settings
 
 if len(sys.argv) != 2:

@@ -4,7 +4,7 @@ from aiologger.handlers.files import AsyncFileHandler
 from aiologger.handlers.streams import AsyncStreamHandler
 
 from config import settings
-from config.constants import LOG_FORMAT, LOG_FILE, FILE_LOG_LEVEL
+from app.config.constants import FILE_LOG_LEVEL, LOG_FILE, LOG_FORMAT
 
 formatter = Formatter(fmt=LOG_FORMAT)
 

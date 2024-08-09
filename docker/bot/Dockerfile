@@ -15,7 +15,7 @@ ENV TZ=Europe/Moscow \
 SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /NewsGatorBot
 
 # Установка зависимостей и очистка кэша
 RUN --mount=type=cache,target=/var/cache/apt apt-get update \

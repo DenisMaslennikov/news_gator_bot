@@ -1,13 +1,12 @@
-from .classifiers import ParseExpressionType, NewsCategory, NewsSourceType
+from .bot import User
+from .classifiers import NewsCategory, NewsSourceType, ParseExpressionType
 from .news_feed import (
-    NewsSource,
-    ParsingExpression,
     News,
     NewsImage,
+    NewsSource,
+    ParsingExpression,
     UserSubscription,
 )
-from .bot import User
-
 
 __all__ = [
     'ParseExpressionType',
