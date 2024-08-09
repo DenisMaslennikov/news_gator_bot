@@ -10,6 +10,3 @@ class Base:
             cls.__table_args__ = {}
         cls.__table_args__['comment'] = cls.__doc__
         return cls.__table_args__
-
-
-# Base = declarative_base(cls=BaseCls)

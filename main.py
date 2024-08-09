@@ -7,8 +7,10 @@ from app.bot import bot, dp
 async def main():
     """Основная функция запускающая все процессы."""
     try:
+        tasks = []
         task = asyncio.create_task(dp.start_polling(bot))
-        await asyncio.gather(task)
+        tasks.append(task)
+        await asyncio.gather(*tasks)
     except Exception as e:
         raise e
     finally:

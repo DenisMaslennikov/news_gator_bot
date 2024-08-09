@@ -3,8 +3,9 @@ from aiogram.dispatcher import router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
-from app.bot.handlers.commands.service import register_user, delete_user
+from app.bot.handlers.commands.service import register_user, delete_user, get_user
 from app.bot.handlers.commands.stases import UnregisterConfirm
+from app.bot.handlers.keyboards.keyboards import news_source_keyboard
 from app.logging import logger
 
 command_router = Router()
@@ -60,7 +61,7 @@ async def unregister_command_handler(message: types.Message, state: FSMContext) 
 @command_router.message(UnregisterConfirm.confirm, F.text.in_(['yes', 'no']))
 async def unregister_confirm(message: types.Message, state: FSMContext) -> None:
     """
-    Обработчик подтверждения удаления регистрации
+    Обработчик подтверждения удаления регистрации.
     :param message: Объект сообщения.
     :param state: Объект состояния.
     """
@@ -75,3 +76,16 @@ async def unregister_confirm(message: types.Message, state: FSMContext) -> None:
         await message.answer('Удаление регистрации отменено.')
     await state.clear()
 
+
+@command_router.message(Command('subscriptions'))
+async def subscriptions_command_handler(message: types.Message, state: FSMContext) -> None:
+    """
+    Обработчик команды управления подписками.
+    :param message: Объект сообщения.
+    :param state: Объект состояния.
+    """
+    logger.debug(f'Открыто меню управления подписками для пользователя {message.from_user.id}')
+    if not get_user(message.from_user.id):
+        await message.answer('Вы незарегистрированный. Зарегистрируйтесь сначала /register')
+    else:
+        await message.answer('Возможные ресурсы для подписки', reply_markup=await news_source_keyboard())

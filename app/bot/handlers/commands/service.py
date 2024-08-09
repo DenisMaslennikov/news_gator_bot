@@ -31,3 +31,11 @@ async def delete_user(user_id: int) -> bool:
             await delete_user_repo(session, user)
             return True
         return False
+
+async def get_user(user_id: int) -> User | None:
+    """
+    Получение информации о регистрации пользователя.
+    :param user_id: Идентификатор пользователя
+    """
+    async with session_scope() as session:
+        return await get_user_repo(session, user_id)
