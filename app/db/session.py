@@ -12,19 +12,18 @@ from config import settings
 async def session_scope() -> AsyncSession:
     """Создание контекстного менеджера сессии и оборачивание её в транзакцию."""
     engine = create_async_engine(settings.async_database_uri)
-    async with engine.connect() as conn:
-        async_session_factory = async_sessionmaker(bind=engine, expire_on_commit=False)
-        async with async_session_factory() as sess:
-            try:
-                yield sess
-                await sess.commit()
-            except OperationalError as e:
-                await sess.rollback()
-                raise e
-            except Exception as e:
-                await sess.rollback()
-                logger.error(f'Необработанная ошибка: {str(e)}')
-                logger.error(traceback.format_exc())
-                raise e
-            finally:
-                await engine.dispose()
+    async_session_factory = async_sessionmaker(bind=engine, expire_on_commit=False)
+    async with async_session_factory() as sess:
+        try:
+            yield sess
+            await sess.commit()
+        except OperationalError as e:
+            await sess.rollback()
+            raise e
+        except Exception as e:
+            await sess.rollback()
+            logger.error(f'Необработанная ошибка: {str(e)}')
+            logger.error(traceback.format_exc())
+            raise e
+        finally:
+            await engine.dispose()
