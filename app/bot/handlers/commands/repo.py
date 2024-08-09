@@ -1,6 +1,5 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
 from app.db.models import User
 from app.db.tools.sqlalchemy_tools import get_or_create, joinedload_all_relationships
@@ -25,6 +24,8 @@ async def get_user_repo(session: AsyncSession, user_id: int, *options, joinedloa
     Получение пользователя по id.
     :param session:  Объект сессии SQLAlchemy.
     :param user_id: Идентификатор пользователя.
+    :param options: Опции для запроса.
+    :param joinedload_all: Загрузить все связанные таблицы используя joinedload.
     :return: Объект модели User или None если пользователь не найден.
     """
     if options and joinedload_all:
@@ -39,6 +40,7 @@ async def get_user_repo(session: AsyncSession, user_id: int, *options, joinedloa
     result = await session.execute(stmt)
     user = result.scalars().first()
     return user
+
 
 async def delete_all_user_subscriptions_repo(session: AsyncSession, user: User) -> None:
     """
@@ -58,4 +60,3 @@ async def delete_user_repo(session: AsyncSession, user: User) -> None:
     """
     if user:
         await session.delete(user)
-
