@@ -20,6 +20,7 @@ async def news_source_keyboard() -> InlineKeyboardMarkup:
     return keyword.adjust(2).as_markup()
 
 
+# Клавиатура отписки
 unsubscribe_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text='Отписаться', callback_data='false'),
@@ -27,6 +28,7 @@ unsubscribe_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     ],
 ])
 
+# Клавиатура подписки
 subscribe_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text='Подписаться', callback_data='true'),

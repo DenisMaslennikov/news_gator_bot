@@ -3,8 +3,8 @@ import uuid
 from sqlalchemy.orm import subqueryload
 
 from app.bot.handlers.commands.repo import register_user_repo, get_user_repo, delete_all_user_subscriptions_repo, \
-    delete_user_repo, get_subscription_repo, subscribe_user_repo, delete_subscription_repo
-from app.db.models import User
+    delete_user_repo, get_subscription_repo, subscribe_user_repo, delete_subscription_repo, get_news_source_repo
+from app.db.models import User, NewsSource
 from app.db.session import session_scope
 
 
@@ -72,3 +72,13 @@ async def unsubscribe_user(user_id: int, news_source_id: str) -> None:
     async with session_scope() as session:
         subscription = await get_subscription_repo(session, user_id, news_source_id)
         await delete_subscription_repo(session, subscription)
+
+
+async def get_news_source(news_source_id: str) -> NewsSource:
+    """
+    Получение новостного ресурса по id/
+    :param news_source_id: Идентификатор новостного ресурса.
+    :return: Объект NewsSource.
+    """
+    async with session_scope() as session:
+        return await get_news_source_repo(session, news_source_id)

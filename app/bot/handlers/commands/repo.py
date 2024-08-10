@@ -1,7 +1,7 @@
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import User, UserSubscription
+from app.db.models import User, UserSubscription, NewsSource
 from app.db.tools.sqlalchemy_tools import get_or_create, joinedload_all_relationships
 from app.logging import logger
 
@@ -94,3 +94,15 @@ async def delete_subscription_repo(session: AsyncSession, subscription: UserSubs
     :param subscription: Объект подписки который необходимо удалить.
     """
     await session.delete(subscription)
+
+
+async def get_news_source_repo(session: AsyncSession, news_source_id: str) -> NewsSource:
+    """
+     Получение информации о новостном ресурсе их базы данных.
+    :param session: Объект сессии SQLAlchemy.
+    :param news_source_id: Идентификатор новостного ресурса.
+    :return: Объект NewsSource.
+    """
+    stmt = select(NewsSource).filter(NewsSource.id == news_source_id)
+    result = await session.execute(stmt)
+    return result.scalars().first()

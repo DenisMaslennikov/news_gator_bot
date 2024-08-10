@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from app.bot.handlers.commands.service import register_user, delete_user, get_user, subscription_status, subscribe_user, \
-    unsubscribe_user
+    unsubscribe_user, get_news_source
 from app.bot.handlers.commands.stases import UnregisterConfirm, SubscriptionsController
 from app.bot.handlers.keyboards.keyboards import news_source_keyboard, unsubscribe_keyboard, subscribe_keyboard
 from app.logging import logger
@@ -105,17 +105,19 @@ async def subscriptions_callback_handler(callback: types.CallbackQuery, state: F
     """
     await logger.debug(f'Управление подпиской на {callback.data}')
     news_source_id = callback.data
-    await callback.answer()
+    news_source = await get_news_source(news_source_id)
+    response = f'Управление подпиской на {news_source.title}'
+    await callback.answer(response)
 
     await state.update_data(news_source_id=news_source_id)
 
     if await subscription_status(callback.from_user.id, news_source_id):
         await callback.message.edit_text(
-            f'Управление подпиской', reply_markup=unsubscribe_keyboard
+            response, reply_markup=unsubscribe_keyboard
         )
     else:
         await callback.message.edit_text(
-            f'Управление подпиской', reply_markup=subscribe_keyboard
+            response, reply_markup=subscribe_keyboard
         )
     await state.set_state(SubscriptionsController.update_subscription)
 
