@@ -1,8 +1,6 @@
-import uuid
-
 from sqlalchemy.orm import subqueryload
 
-from app.bot.handlers.commands.repo import register_user_repo, get_user_repo, delete_all_user_subscriptions_repo, \
+from app.db.repo import register_user_repo, get_user_repo, delete_all_user_subscriptions_repo, \
     delete_user_repo, get_subscription_repo, subscribe_user_repo, delete_subscription_repo, get_news_source_repo
 from app.db.models import User, NewsSource
 from app.db.session import session_scope

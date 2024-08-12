@@ -10,7 +10,22 @@ async def news_source_keyboard() -> InlineKeyboardMarkup:
     Получает из базы варианты подписок и создает клавиатуру с вариантами подписок.
     :return: Инлайн клавиатуру с вариантами подписок.
     """
-    await logger.debug('Генерация клавиатуры подписок')
+    await logger.debug('Генерация клавиатуры подписок - сайты')
+    keyword = InlineKeyboardBuilder()
+    news_sources = await get_news_sources()
+    for news_source in news_sources:
+        keyword.add(
+            InlineKeyboardButton(text=news_source.title, callback_data=str(news_source.id))
+        )
+    return keyword.adjust(2).as_markup()
+
+
+async def news_category_keyboard() -> InlineKeyboardMarkup:
+    """
+    Получает из базы варианты подписок и создает клавиатуру с вариантами подписок.
+    :return: Инлайн клавиатуру с вариантами подписок.
+    """
+    await logger.debug('Генерация клавиатуры подписок - категории')
     keyword = InlineKeyboardBuilder()
     news_sources = await get_news_sources()
     for news_source in news_sources:

@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from app.bot.handlers.keyboards.repo import get_news_sources_repo
+from app.db.repo import get_news_sources_repo
 from app.db.models import NewsSource
 from app.db.session import session_scope
 

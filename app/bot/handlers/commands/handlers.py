@@ -143,4 +143,3 @@ async def update_subscriptions_callback_handler(callback: types.CallbackQuery, s
         'Возможные ресурсы для подписки', reply_markup=await news_source_keyboard()
     )
     await state.set_state(SubscriptionsController.select_subscription)
-
