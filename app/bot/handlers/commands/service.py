@@ -2,7 +2,7 @@ from sqlalchemy.orm import subqueryload
 
 from app.db.repo import register_user_repo, get_user_repo, delete_all_user_subscriptions_repo, \
     delete_user_repo, get_subscription_repo, subscribe_user_repo, delete_subscription_repo, get_news_resource_repo
-from app.db.models import User, NewsResource
+from app.db.models import User, Resource
 from app.db.session import session_scope
 
 
@@ -40,43 +40,43 @@ async def get_user(user_id: int) -> User | None:
         return await get_user_repo(session, user_id)
 
 
-async def subscription_status(user_id: int, news_source_id: str) -> bool:
+async def subscription_status(user_id: int, resource_id: str) -> bool:
     """
     Проверяет наличие подписки у пользователя на ресурс.
     :param user_id: Идентификатор пользователя.
-    :param news_source_id: Идентификатор ресурса.
+    :param resource_id: Идентификатор ресурса.
     :return: True если такая подписка есть False если подписки нет.
     """
     async with session_scope() as session:
-        return bool(await get_subscription_repo(session, user_id, news_source_id))
+        return bool(await get_subscription_repo(session, user_id, resource_id))
 
 
-async def subscribe_user(user_id: int, news_source_id: str) -> None:
+async def subscribe_user(user_id: int, resource_id: str) -> None:
     """
     Подписывает пользователя на ресурс.
     :param user_id: Идентификатор пользователя.
-    :param news_source_id: Идентификатор ресурса.
+    :param resource_id: Идентификатор ресурса.
     """
     async with session_scope() as session:
-        await subscribe_user_repo(session, user_id, news_source_id)
+        await subscribe_user_repo(session, user_id, resource_id)
 
 
-async def unsubscribe_user(user_id: int, news_source_id: str) -> None:
+async def unsubscribe_user(user_id: int, resource_id: str) -> None:
     """
     Отменяет подписку пользователя на ресурс.
     :param user_id: Идентификатор пользователя.
-    :param news_source_id: Идентификатор ресурса.
+    :param resource_id: Идентификатор ресурса.
     """
     async with session_scope() as session:
-        subscription = await get_subscription_repo(session, user_id, news_source_id)
+        subscription = await get_subscription_repo(session, user_id, resource_id)
         await delete_subscription_repo(session, subscription)
 
 
-async def get_news_source(news_source_id: str) -> NewsResource:
+async def get_news_source(resource_id: str) -> Resource:
     """
     Получение новостного ресурса по id/
-    :param news_source_id: Идентификатор новостного ресурса.
-    :return: Объект NewsResource.
+    :param resource_id: Идентификатор новостного ресурса.
+    :return: Объект Resource.
     """
     async with session_scope() as session:
-        return await get_news_resource_repo(session, news_source_id)
+        return await get_news_resource_repo(session, resource_id)

@@ -2,7 +2,7 @@
 
 Revision ID: 0001
 Revises: 
-Create Date: 2024-08-12 18:04:24.318893
+Create Date: 2024-08-12 19:46:27.238357
 
 """
 from typing import Sequence, Union
@@ -32,18 +32,18 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     comment='Категории для новостей.'
     )
-    op.create_table('cl_news_source_type',
-    sa.Column('id', sa.SmallInteger(), nullable=False, comment='Идентификатор типа источника новостей'),
-    sa.Column('name', sa.String(length=50), nullable=False, comment='Наименование типа источника новостей'),
-    sa.PrimaryKeyConstraint('id'),
-    comment='Тип источника новости.'
-    )
     op.create_table('cl_parsers',
     sa.Column('id', sa.Integer(), nullable=False, comment='Идентификатор парсера'),
     sa.Column('name', sa.String(length=120), nullable=True, comment='Название парсера'),
     sa.Column('parser_class', sa.String(length=120), nullable=True, comment='Класс парсера'),
     sa.PrimaryKeyConstraint('id'),
     comment='Модель содержащая класс и имя парсера.'
+    )
+    op.create_table('cl_resource_type',
+    sa.Column('id', sa.SmallInteger(), nullable=False, comment='Идентификатор типа источника новостей'),
+    sa.Column('name', sa.String(length=50), nullable=False, comment='Наименование типа источника новостей'),
+    sa.PrimaryKeyConstraint('id'),
+    comment='Тип источника новости.'
     )
     op.create_table('cl_roles',
     sa.Column('id', sa.SmallInteger(), nullable=False, comment='Идентификатор роли'),
@@ -81,7 +81,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     comment='Изображения к новостям.'
     )
-    op.create_table('nf_news_resources',
+    op.create_table('nf_resources',
     sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False, comment='Идентификатор новостного ресурса'),
     sa.Column('url', sa.Text(), nullable=False, comment='Адрес новостного ресурса'),
     sa.Column('update_interval', sa.Integer(), nullable=False, comment='Частота обновления в секундах'),
@@ -90,7 +90,7 @@ def upgrade() -> None:
     sa.Column('parser_id', sa.Integer(), nullable=False, comment='Идентификатор парсера'),
     sa.Column('source_type_id', sa.SmallInteger(), nullable=False, comment='Идентификатор типа новостного ресурса'),
     sa.ForeignKeyConstraint(['parser_id'], ['cl_parsers.id'], ),
-    sa.ForeignKeyConstraint(['source_type_id'], ['cl_news_source_type.id'], ondelete='RESTRICT'),
+    sa.ForeignKeyConstraint(['source_type_id'], ['cl_resource_type.id'], ondelete='RESTRICT'),
     sa.PrimaryKeyConstraint('id'),
     comment='Источники новостей.'
     )
@@ -105,7 +105,7 @@ def upgrade() -> None:
     sa.Column('deletion_datetime', sa.DateTime(), nullable=True, comment='Дата и время удаления'),
     sa.Column('notification_datetime', sa.DateTime(), nullable=True, comment='Дата и время когда было выслано уведомление о добавлении категории'),
     sa.ForeignKeyConstraint(['category_id'], ['cl_categories.id'], ),
-    sa.ForeignKeyConstraint(['news_resource_id'], ['nf_news_resources.id'], ),
+    sa.ForeignKeyConstraint(['news_resource_id'], ['nf_resources.id'], ),
     sa.ForeignKeyConstraint(['parser_id'], ['cl_parsers.id'], ),
     sa.PrimaryKeyConstraint('id'),
     comment='Категории новостей на новостном ресурсе.'
@@ -113,10 +113,10 @@ def upgrade() -> None:
     op.create_table('nf_user_subscription',
     sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('news_resource_id', sa.Uuid(), nullable=False),
+    sa.Column('resource_id', sa.Uuid(), nullable=False),
     sa.Column('category_id', sa.SmallInteger(), nullable=False),
     sa.ForeignKeyConstraint(['category_id'], ['cl_categories.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['news_resource_id'], ['nf_news_resources.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['resource_id'], ['nf_resources.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['bot_users.user_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     comment='Подписки пользователя.'
@@ -138,13 +138,13 @@ def downgrade() -> None:
     op.drop_table('nf_news_remote_categories')
     op.drop_table('nf_user_subscription')
     op.drop_table('nf_remote_categories')
-    op.drop_table('nf_news_resources')
+    op.drop_table('nf_resources')
     op.drop_table('nf_news_images')
     op.drop_table('bot_user_roles')
     op.drop_table('nf_news')
     op.drop_table('cl_roles')
+    op.drop_table('cl_resource_type')
     op.drop_table('cl_parsers')
-    op.drop_table('cl_news_source_type')
     op.drop_table('cl_categories')
     op.drop_table('bot_users')
     # ### end Alembic commands ###

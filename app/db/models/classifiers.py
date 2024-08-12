@@ -22,9 +22,9 @@ class Category(Base):
     remote_categories = relationship('RemoteCategory', back_populates='category')
 
 
-class NewsSourceType(Base):
+class ResourceType(Base):
     """Тип источника новости."""
-    __tablename__ = 'cl_news_source_type'
+    __tablename__ = 'cl_resource_type'
 
     id = Column(SmallInteger, primary_key=True, comment='Идентификатор типа источника новостей')
     name = Column(String(50), nullable=False, comment='Наименование типа источника новостей')
@@ -38,4 +38,4 @@ class Parser(Base):
     name = Column(String(120), comment='Название парсера')
     parser_class = Column(String(120), comment='Класс парсера')
 
-    news_resources = relationship('NewsResource', back_populates='parser')
+    news_resources = relationship('Resource', back_populates='parser')

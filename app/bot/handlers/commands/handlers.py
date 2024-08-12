@@ -89,7 +89,7 @@ async def subscriptions_command_handler(message: types.Message, state: FSMContex
     :param state: Объект состояния.
     """
     logger.debug(f'Открыто меню управления подписками для пользователя {message.from_user.id}')
-    if not get_user(message.from_user.id):
+    if not await get_user(message.from_user.id):
         await message.answer('Вы незарегистрированный. Зарегистрируйтесь сначала /register')
     else:
         await state.set_state(SubscriptionsController.select_subscription)

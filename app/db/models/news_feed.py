@@ -1,14 +1,12 @@
-import uuid
-
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, SmallInteger, String, Text, Uuid, text
 from sqlalchemy.orm import relationship
 
 from app.db.models.base import Base
 
 
-class NewsResource(Base):
+class Resource(Base):
     """Источники новостей."""
-    __tablename__ = 'nf_news_resources'
+    __tablename__ = 'nf_resources'
 
     id = Column(
         Uuid(as_uuid=True),
@@ -23,14 +21,14 @@ class NewsResource(Base):
     parser_id = Column(Integer, ForeignKey('cl_parsers.id'), nullable=False, comment='Идентификатор парсера')
     source_type_id = Column(
         SmallInteger,
-        ForeignKey('cl_news_source_type.id', ondelete='RESTRICT'),
+        ForeignKey('cl_resource_type.id', ondelete='RESTRICT'),
         nullable=False,
         comment='Идентификатор типа новостного ресурса',
     )
 
-    parse = relationship('Parser', back_populates='news_resources')
-    source_type = relationship('NewsSourceType')
-    news = relationship('News', back_populates='news_resource')
+    parser = relationship('Parser', back_populates='news_resources')
+    resource_type = relationship('ResourceType')
+    remote_categories = relationship('RemoteCategory', back_populates='resource')
 
 
 class NewsRemoteCategory(Base):
@@ -54,7 +52,7 @@ class RemoteCategory(Base):
     )
     name = Column(String(100), comment='Название категории', nullable=False)
     url = Column(Text, comment='Ссылка на категорию', nullable=False)
-    news_resource_id = Column(Uuid(as_uuid=True), ForeignKey('nf_news_resources.id'), nullable=False)
+    news_resource_id = Column(Uuid(as_uuid=True), ForeignKey('nf_resources.id'), nullable=False)
     update_interval = Column(Integer, nullable=True, comment='Интервал обновление в секундах')
     category_id = Column(
         Integer, ForeignKey('cl_categories.id'), nullable=True, comment='Локальная категория новостей',
@@ -67,6 +65,7 @@ class RemoteCategory(Base):
 
     news = relationship('News', back_populates='remote_categories', secondary=NewsRemoteCategory.__table__)
     category = relationship('Category', back_populates='remote_categories')
+    resource = relationship('Resource', back_populates='remote_categories')
 
 
 class News(Base):
@@ -106,13 +105,13 @@ class UserSubscription(Base):
 
     id = Column(Uuid(as_uuid=True), primary_key=True, server_default=text('gen_random_uuid()'))
     user_id = Column(Integer, ForeignKey('bot_users.user_id', ondelete='CASCADE'), nullable=False)
-    news_resource_id = Column(
-        Uuid(as_uuid=True), ForeignKey('nf_news_resources.id', ondelete='CASCADE'), nullable=False,
+    resource_id = Column(
+        Uuid(as_uuid=True), ForeignKey('nf_resources.id', ondelete='CASCADE'), nullable=False,
     )
     category_id = Column(
         SmallInteger, ForeignKey('cl_categories.id', ondelete='CASCADE'), nullable=False,
     )
 
     user = relationship('User', back_populates='subscriptions')
-    news_source = relationship('NewsResource')
-    news_category = relationship('NewsCategory')
+    resource = relationship('Resource')
+    category = relationship('Category')
