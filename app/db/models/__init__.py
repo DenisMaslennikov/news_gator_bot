@@ -1,21 +1,23 @@
-from .bot import User
-from .classifiers import NewsCategory, NewsSourceType, ParseExpressionType
+from .bot import User, UserRoles
+from .classifiers import Category, NewsSourceType, Roles, Parser
 from .news_feed import (
     News,
     NewsImage,
-    NewsSource,
-    ParsingExpression,
+    NewsResource,
     UserSubscription,
+    NewsRemoteCategory,
 )
 
 __all__ = [
-    'ParseExpressionType',
-    'NewsCategory',
+    'UserRoles',
+    'Category',
+    'Parser',
+    'Roles',
     'NewsSourceType',
-    'NewsSource',
-    'ParsingExpression',
+    'NewsResource',
     'News',
     'NewsImage',
+    'NewsRemoteCategory',
     'UserSubscription',
     'User',
 ]

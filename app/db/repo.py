@@ -3,7 +3,7 @@ from typing import Sequence
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import User, UserSubscription, NewsSource
+from app.db.models import User, UserSubscription, NewsResource
 from app.db.tools.sqlalchemy_tools import get_or_create, joinedload_all_relationships
 from app.logging import logger
 
@@ -97,24 +97,24 @@ async def delete_subscription_repo(session: AsyncSession, subscription: UserSubs
     await session.delete(subscription)
 
 
-async def get_news_source_repo(session: AsyncSession, news_source_id: str) -> NewsSource:
+async def get_news_resource_repo(session: AsyncSession, news_source_id: str) -> NewsResource:
     """
      Получение информации о новостном ресурсе их базы данных.
     :param session: Объект сессии SQLAlchemy.
     :param news_source_id: Идентификатор новостного ресурса.
-    :return: Объект NewsSource.
+    :return: Объект NewsResource.
     """
-    stmt = select(NewsSource).filter(NewsSource.id == news_source_id)
+    stmt = select(NewsResource).filter(NewsResource.id == news_source_id)
     result = await session.execute(stmt)
     return result.scalars().first()
 
 
-async def get_news_sources_repo(session: AsyncSession) -> Sequence[NewsSource]:
+async def get_news_resources_repo(session: AsyncSession) -> Sequence[NewsResource]:
     """
     Получение списка источников новостей доступных для подписки из базы данных.
     :param session: Объект сессии SQLAlchemy
-    :return: Список объектов NewsSource
+    :return: Список объектов NewsResource
     """
-    stmt = select(NewsSource).order_by(NewsSource.title)
+    stmt = select(NewsResource).order_by(NewsResource.title)
     result = await session.execute(stmt)
     return result.scalars().all()

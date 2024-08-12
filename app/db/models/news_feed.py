@@ -6,9 +6,9 @@ from sqlalchemy.orm import relationship
 from app.db.models.base import Base
 
 
-class NewsSource(Base):
+class NewsResource(Base):
     """Источники новостей."""
-    __tablename__ = 'nf_news_source'
+    __tablename__ = 'nf_news_resources'
 
     id = Column(
         Uuid(as_uuid=True),
@@ -20,59 +20,73 @@ class NewsSource(Base):
     update_interval = Column(Integer, nullable=False, comment='Частота обновления в секундах')
     title = Column(String(255), nullable=False, comment='Название новостного ресурса')
     comment = Column(Text, comment='Комментарий')
+    parser_id = Column(Integer, ForeignKey('cl_parsers.id'), nullable=False, comment='Идентификатор парсера')
     source_type_id = Column(
         SmallInteger,
         ForeignKey('cl_news_source_type.id', ondelete='RESTRICT'),
         nullable=False,
         comment='Идентификатор типа новостного ресурса',
     )
-    default_news_category_id = Column(
-        SmallInteger,
-        ForeignKey('cl_news_category.id', ondelete='RESTRICT'),
-        comment='Категория по умолчанию для новостного ресурса',
-    )
 
+    parse = relationship('Parser', back_populates='news_resources')
     source_type = relationship('NewsSourceType')
-    default_news_category = relationship('NewsCategory')
-    news = relationship('News', back_populates='news_source')
+    news = relationship('News', back_populates='news_resource')
 
 
-class ParsingExpression(Base):
-    """Выражения для парсинга новостей."""
-    __tablename__ = 'nf_parsing_expressions'
+class NewsRemoteCategory(Base):
+    """Таблица для связи многий ко многим новостей с категориями."""
+    __tablename__ = 'nf_news_remote_categories'
 
-    id = Column(Uuid(as_uuid=True), primary_key=True, server_default=text('gen_random_uuid()'))
-    parse_expression_type_id = Column(
-        SmallInteger, ForeignKey('cl_parse_expression_type.id', ondelete='RESTRICT'), nullable=False,
+    id = Column(Uuid(as_uuid=True), primary_key=True, server_default=text('gen_random_uuid()'), comment='Идентификатор')
+    remote_category_id = Column(Uuid(as_uuid=True), ForeignKey('nf_remote_categories.id'), nullable=False)
+    news_id = Column(Uuid(as_uuid=True), ForeignKey('nf_news.id'), nullable=False)
+
+
+class RemoteCategory(Base):
+    """Категории новостей на новостном ресурсе."""
+    __tablename__ = 'nf_remote_categories'
+
+    id = Column(
+        Uuid(as_uuid=True),
+        primary_key=True,
+        server_default=text('gen_random_uuid()'),
+        comment='Идентификатор категории ресурса'
     )
-    parse_expression = Column(Text, nullable=False)
-    news_source_id = Column(Uuid(as_uuid=True), ForeignKey('nf_news_source.id'), nullable=False)
-    parsing_level = Column(SmallInteger, nullable=False)
+    name = Column(String(100), comment='Название категории', nullable=False)
+    url = Column(Text, comment='Ссылка на категорию', nullable=False)
+    news_resource_id = Column(Uuid(as_uuid=True), ForeignKey('nf_news_resources.id'), nullable=False)
+    update_interval = Column(Integer, nullable=True, comment='Интервал обновление в секундах')
+    category_id = Column(
+        Integer, ForeignKey('cl_categories.id'), nullable=True, comment='Локальная категория новостей',
+    )
+    parser_id = Column(Integer, ForeignKey('cl_parsers.id'), comment='Идентификатор парсера')
+    deletion_datetime = Column(DateTime, comment='Дата и время удаления')
+    notification_datetime = Column(
+        DateTime, comment='Дата и время когда было выслано уведомление о добавлении категории',
+    )
 
-    parse_expression_type = relationship('ParseExpressionType')
-    news_source = relationship('NewsSource')
+    news = relationship('News', back_populates='remote_categories', secondary=NewsRemoteCategory.__table__)
+    category = relationship('Category', back_populates='remote_categories')
 
 
 class News(Base):
     """Новости."""
     __tablename__ = 'nf_news'
 
-    id = Column(Uuid(as_uuid=True), primary_key=True, server_default=text('gen_random_uuid()'))
-    title = Column(Text, nullable=False)
-    description = Column(Text, nullable=False)
-    content = Column(Text)
-    news_url = Column(Text, unique=True, nullable=False)
-    news_source_id = Column(
-        Uuid(as_uuid=True), ForeignKey('nf_news_source.id', ondelete='RESTRICT'), nullable=False
+    id = Column(
+        Uuid(as_uuid=True), primary_key=True, server_default=text('gen_random_uuid()'), comment='Идентификатор новости',
     )
-    news_category_id = Column(
-        SmallInteger, ForeignKey('cl_news_category.id', ondelete='RESTRICT'), nullable=False
-    )
-    published_at = Column(DateTime, nullable=False)
-    author = Column(Text)
+    title = Column(Text, nullable=False, comment='Заголовок новости')
+    description = Column(Text, nullable=False, comment='Краткий анонс новости')
+    content = Column(Text, comment='Текст новости')
+    news_url = Column(Text, unique=True, nullable=False, comment='Ссылка на новость')
+    published_at = Column(DateTime, nullable=False, comment='Дата публикации')
+    detected_at = Column(DateTime, nullable=False, comment='Дата добавления в базу')
+    author = Column(Text, comment='Информация об авторе')
 
-    news_source = relationship('NewsSource', back_populates='news')
-    category = relationship('NewsCategory')
+    remote_categories = relationship(
+        'RemoteCategory', back_populates='news', secondary=NewsRemoteCategory.__table__,
+    )
 
 
 class NewsImage(Base):
@@ -92,9 +106,13 @@ class UserSubscription(Base):
 
     id = Column(Uuid(as_uuid=True), primary_key=True, server_default=text('gen_random_uuid()'))
     user_id = Column(Integer, ForeignKey('bot_users.user_id', ondelete='CASCADE'), nullable=False)
-    news_source_id = Column(Uuid(as_uuid=True), ForeignKey('nf_news_source.id', ondelete='CASCADE'), nullable=False)
-    news_category_id = Column(SmallInteger, ForeignKey('cl_news_category.id', ondelete='CASCADE'), nullable=False)
+    news_resource_id = Column(
+        Uuid(as_uuid=True), ForeignKey('nf_news_resources.id', ondelete='CASCADE'), nullable=False,
+    )
+    category_id = Column(
+        SmallInteger, ForeignKey('cl_categories.id', ondelete='CASCADE'), nullable=False,
+    )
 
     user = relationship('User', back_populates='subscriptions')
-    news_source = relationship('NewsSource')
+    news_source = relationship('NewsResource')
     news_category = relationship('NewsCategory')

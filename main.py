@@ -11,7 +11,9 @@ async def main():
     """Основная функция запускающая все процессы."""
     try:
         tasks = []
-        parse = YandexNewsCategoriesParser('https://dzen.ru/news', fake_useragent.UserAgent(browsers='chrome', os='linux', platforms='pc').random)
+        parse = YandexNewsCategoriesParser(
+            'https://dzen.ru/news', fake_useragent.UserAgent(browsers='chrome', platforms='pc').random,
+        )
         task = asyncio.create_task(parse.fetch_data())
         tasks.append(task)
         task = asyncio.create_task(parse.parse())

@@ -1,8 +1,8 @@
 from sqlalchemy.orm import subqueryload
 
 from app.db.repo import register_user_repo, get_user_repo, delete_all_user_subscriptions_repo, \
-    delete_user_repo, get_subscription_repo, subscribe_user_repo, delete_subscription_repo, get_news_source_repo
-from app.db.models import User, NewsSource
+    delete_user_repo, get_subscription_repo, subscribe_user_repo, delete_subscription_repo, get_news_resource_repo
+from app.db.models import User, NewsResource
 from app.db.session import session_scope
 
 
@@ -72,11 +72,11 @@ async def unsubscribe_user(user_id: int, news_source_id: str) -> None:
         await delete_subscription_repo(session, subscription)
 
 
-async def get_news_source(news_source_id: str) -> NewsSource:
+async def get_news_source(news_source_id: str) -> NewsResource:
     """
     Получение новостного ресурса по id/
     :param news_source_id: Идентификатор новостного ресурса.
-    :return: Объект NewsSource.
+    :return: Объект NewsResource.
     """
     async with session_scope() as session:
-        return await get_news_source_repo(session, news_source_id)
+        return await get_news_resource_repo(session, news_source_id)

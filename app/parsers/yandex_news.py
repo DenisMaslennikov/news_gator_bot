@@ -7,13 +7,15 @@ from .base import AsyncSeleniumParser
 class YandexNewsCategoriesParser(AsyncSeleniumParser):
     """Парсер категорий с яндекс новостей."""
 
-    async def parse(self) -> str | List[str]:
-        """Парсет список категорий"""
-        body = self._driver.find_element(By.TAG_NAME, 'body')
+    async def parse(self) -> None:
+        """Парсер списка категорий яндекс новостей."""
         categories_xpath = 'news-rubricator'
         categories_list = self._driver.find_element(By.CLASS_NAME, categories_xpath).find_elements(By.TAG_NAME, 'a')
-        categories_names = [category.text for category in categories_list]
-        print(categories_names)
-        #print(body.text)
-        return body.text
-
+        categories = [
+            {
+                'name': category.text,
+                'url': category.get_attribute('href'),
+            }
+            for category in categories_list
+        ]
+        self.categories = categories
