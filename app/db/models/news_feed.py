@@ -26,9 +26,10 @@ class Resource(Base):
         comment='Идентификатор типа новостного ресурса',
     )
 
-    parser = relationship('Parser', back_populates='news_resources')
-    resource_type = relationship('ResourceType')
+    parser = relationship('Parser', back_populates='resources')
+    resource_type = relationship('ResourceType', back_populates='resources')
     remote_categories = relationship('RemoteCategory', back_populates='resource')
+    user_subscriptions = relationship('UserSubscription', back_populates='resource')
 
 
 class NewsRemoteCategory(Base):
@@ -86,17 +87,18 @@ class News(Base):
     remote_categories = relationship(
         'RemoteCategory', back_populates='news', secondary=NewsRemoteCategory.__table__,
     )
+    images = relationship('Image', back_populates='news')
 
 
-class NewsImage(Base):
+class Image(Base):
     """Изображения к новостям."""
-    __tablename__ = 'nf_news_images'
+    __tablename__ = 'nf_images'
 
     id = Column(Uuid(as_uuid=True), primary_key=True, server_default=text('gen_random_uuid()'))
     file_name = Column(String, nullable=False)
     news_id = Column(Uuid(as_uuid=True), ForeignKey('nf_news.id', ondelete='CASCADE'), nullable=False)
 
-    news = relationship('News')
+    news = relationship('News', back_populates='images')
 
 
 class UserSubscription(Base):
@@ -112,6 +114,6 @@ class UserSubscription(Base):
         SmallInteger, ForeignKey('cl_categories.id', ondelete='CASCADE'), nullable=False,
     )
 
-    user = relationship('User', back_populates='subscriptions')
-    resource = relationship('Resource')
-    category = relationship('Category')
+    user = relationship('User', back_populates='user_subscriptions')
+    resource = relationship('Resource', back_populates='user_subscriptions')
+    category = relationship('Category', back_populates='user_subscriptions')

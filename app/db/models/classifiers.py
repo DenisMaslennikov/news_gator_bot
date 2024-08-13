@@ -1,15 +1,18 @@
 from sqlalchemy import Column, SmallInteger, String, DateTime, Integer
 from sqlalchemy.orm import relationship
 
+from app.db.models import UserRoles
 from app.db.models.base import Base
 
 
-class Roles(Base):
+class Role(Base):
     """Классификатор ролей пользователя."""
     __tablename__ = 'cl_roles'
 
     id = Column(SmallInteger, primary_key=True, comment='Идентификатор роли')
     name = Column(String(50), nullable=False,comment='Роль')
+
+    users = relationship('User', back_populates='roles', secondary=UserRoles.__table__)
 
 class Category(Base):
     """Категории для новостей."""
@@ -20,6 +23,7 @@ class Category(Base):
     deletion_datetime = Column(DateTime, nullable=True, comment='Дата удаления')
 
     remote_categories = relationship('RemoteCategory', back_populates='category')
+    user_subscriptions = relationship('UserSubscription', back_populates='category')
 
 
 class ResourceType(Base):
@@ -28,6 +32,8 @@ class ResourceType(Base):
 
     id = Column(SmallInteger, primary_key=True, comment='Идентификатор типа источника новостей')
     name = Column(String(50), nullable=False, comment='Наименование типа источника новостей')
+
+    resources = relationship('Resource', back_populates='resource_type')
 
 
 class Parser(Base):
@@ -38,4 +44,4 @@ class Parser(Base):
     name = Column(String(120), comment='Название парсера')
     parser_class = Column(String(120), comment='Класс парсера')
 
-    news_resources = relationship('Resource', back_populates='parser')
+    resources = relationship('Resource', back_populates='parser')

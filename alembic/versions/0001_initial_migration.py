@@ -2,7 +2,7 @@
 
 Revision ID: 0001
 Revises: 
-Create Date: 2024-08-12 19:46:27.238357
+Create Date: 2024-08-13 19:51:07.585811
 
 """
 from typing import Sequence, Union
@@ -73,7 +73,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     comment='Роли пользователя.'
     )
-    op.create_table('nf_news_images',
+    op.create_table('nf_images',
     sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('file_name', sa.String(), nullable=False),
     sa.Column('news_id', sa.Uuid(), nullable=False),
@@ -139,7 +139,7 @@ def downgrade() -> None:
     op.drop_table('nf_user_subscription')
     op.drop_table('nf_remote_categories')
     op.drop_table('nf_resources')
-    op.drop_table('nf_news_images')
+    op.drop_table('nf_images')
     op.drop_table('bot_user_roles')
     op.drop_table('nf_news')
     op.drop_table('cl_roles')
