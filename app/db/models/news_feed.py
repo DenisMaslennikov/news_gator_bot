@@ -52,7 +52,7 @@ class RemoteCategory(Base):
         comment='Идентификатор категории ресурса'
     )
     name = Column(String(100), comment='Название категории', nullable=False)
-    url = Column(Text, comment='Ссылка на категорию', nullable=False)
+    url = Column(Text, comment='Ссылка на категорию', nullable=False, unique=True)
     news_resource_id = Column(Uuid(as_uuid=True), ForeignKey('nf_resources.id'), nullable=False)
     update_interval = Column(Integer, nullable=True, comment='Интервал обновление в секундах')
     category_id = Column(

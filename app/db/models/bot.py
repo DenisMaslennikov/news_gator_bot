@@ -4,7 +4,7 @@ from sqlalchemy.orm import Relationship
 from app.db.models.base import Base
 
 
-class UserRoles(Base):
+class UserRole(Base):
     """Роли пользователя."""
     __tablename__ = 'bot_user_roles'
     id = Column(
@@ -23,4 +23,4 @@ class User(Base):
     user_id = Column(Integer, primary_key=True, comment='Идентификатор пользователя в телеграм')
 
     user_subscriptions = Relationship('UserSubscription', back_populates='user')
-    roles = Relationship('UserRole', back_populates='user', secondary=UserRoles.__table__)
+    roles = Relationship('Role', back_populates='users', secondary=UserRole.__table__)

@@ -1,4 +1,4 @@
-from .bot import User, UserRoles
+from .bot import User, UserRole
 from .classifiers import Category, ResourceType, Role, Parser
 from .news_feed import (
     News,
@@ -9,7 +9,7 @@ from .news_feed import (
 )
 
 __all__ = [
-    'UserRoles',
+    'UserRole',
     'Category',
     'Parser',
     'Role',

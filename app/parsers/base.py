@@ -20,10 +20,11 @@ from app.config.constants import CHROME_BINARY_LOCATION, CHROMEDRIVER_LOCATION
 class BaseParser(ABC):
     """Базовый класс парсера."""
 
-    def __init__(self, url: str, user_agent: str) -> None:
+    def __init__(self, url: str, user_agent: str, *args, **kwargs) -> None:
         """Метод инициализации объекта класса парсера."""
         self.url = url
         self.user_agent = user_agent
+        self.extra_data = kwargs
 
     # @abstractmethod
     # async def __aenter__(self) -> AsyncContextManager:
@@ -41,18 +42,23 @@ class BaseParser(ABC):
         pass
 
     @abstractmethod
-    def parse(self) -> str | List[str]:
+    async def parse(self) -> None:
         """Метод для извлечения данных из страницы."""
+        pass
+
+    @abstractmethod
+    async def proces_data(self) -> None:
+        """Метод для обработки данных например записи в БД."""
         pass
 
 
 class AsyncSeleniumParser(BaseParser):
-    """Класс для работы с драйвером chrome"""
+    """Класс для работы с selenium."""
 
-    def __init__(self, url: str, user_agent: str) -> None:
+    def __init__(self, url: str, user_agent: str, *args, **kwargs) -> None:
         """Инициализация объекта класса."""
-        super().__init__(url, user_agent)
-        self.executor = ThreadPoolExecutor(max_workers=1)
+        super().__init__(url, user_agent, *args, **kwargs)
+        self._executor = ThreadPoolExecutor(max_workers=1)
         self._driver = None
         self._setup_driver('chrome')
 
@@ -95,8 +101,6 @@ class AsyncSeleniumParser(BaseParser):
 
     def _fetch_data(self) -> None:
         """Функция для выполнения блокирующих операций Selenium."""
-        if self._driver is None:
-            self._setup_driver('chrome')
         self._driver.get(self.url)
 
 
@@ -104,4 +108,4 @@ class AsyncSeleniumParser(BaseParser):
         """Асинхронный метод для получения данных."""
         loop = asyncio.get_running_loop()
         # Выполняем блокирующую операцию в отдельном потоке
-        await loop.run_in_executor(self.executor, self._fetch_data)
+        await loop.run_in_executor(self._executor, self._fetch_data)

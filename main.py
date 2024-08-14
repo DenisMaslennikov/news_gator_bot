@@ -12,11 +12,15 @@ async def main():
     try:
         tasks = []
         parse = YandexNewsCategoriesParser(
-            'https://dzen.ru/news', fake_useragent.UserAgent(browsers='chrome', platforms='pc').random,
+            'https://dzen.ru/news',
+            fake_useragent.UserAgent(browsers='chrome', platforms='pc').random,
+            news_resource_id='edff6f4c-a937-48e2-8e07-cc02b1f393ac',
         )
         task = asyncio.create_task(parse.fetch_data())
         tasks.append(task)
         task = asyncio.create_task(parse.parse())
+        tasks.append(task)
+        task = asyncio.create_task(parse.proces_data())
         tasks.append(task)
         task = asyncio.create_task(dp.start_polling(bot))
         tasks.append(task)

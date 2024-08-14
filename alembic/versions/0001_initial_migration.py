@@ -2,7 +2,7 @@
 
 Revision ID: 0001
 Revises: 
-Create Date: 2024-08-13 19:51:07.585811
+Create Date: 2024-08-13 22:00:01.810289
 
 """
 from typing import Sequence, Union
@@ -108,6 +108,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['news_resource_id'], ['nf_resources.id'], ),
     sa.ForeignKeyConstraint(['parser_id'], ['cl_parsers.id'], ),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('url'),
     comment='Категории новостей на новостном ресурсе.'
     )
     op.create_table('nf_user_subscription',

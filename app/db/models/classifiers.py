@@ -1,7 +1,7 @@
 from sqlalchemy import Column, SmallInteger, String, DateTime, Integer
 from sqlalchemy.orm import relationship
 
-from app.db.models import UserRoles
+from app.db.models import UserRole
 from app.db.models.base import Base
 
 
@@ -12,7 +12,7 @@ class Role(Base):
     id = Column(SmallInteger, primary_key=True, comment='Идентификатор роли')
     name = Column(String(50), nullable=False,comment='Роль')
 
-    users = relationship('User', back_populates='roles', secondary=UserRoles.__table__)
+    users = relationship('User', back_populates='roles', secondary=UserRole.__table__)
 
 class Category(Base):
     """Категории для новостей."""

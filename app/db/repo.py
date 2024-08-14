@@ -1,9 +1,11 @@
+import uuid
 from typing import Sequence
 
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import User, UserSubscription, Resource
+from app.db.models import User, UserSubscription, Resource, Category
+from app.db.models.news_feed import RemoteCategory
 from app.db.tools.sqlalchemy_tools import get_or_create, joinedload_all_relationships
 from app.logging import logger
 
@@ -118,3 +120,14 @@ async def get_news_resources_repo(session: AsyncSession) -> Sequence[Resource]:
     stmt = select(Resource).order_by(Resource.title)
     result = await session.execute(stmt)
     return result.scalars().all()
+
+
+async def add_remote_categories_repo(session: AsyncSession, name: str, url: str, news_resource_id: uuid.UUID) -> None:
+    """
+
+    :param session: Объект сессии SQLAlchemy
+    :param name: Название категории
+    :param url: Ссылка на страницу категории.
+    :param news_resource_id: Идентификатор новостного ресурса.
+    """
+    await get_or_create(session, RemoteCategory, name=name, url=url, news_resource_id=news_resource_id)
