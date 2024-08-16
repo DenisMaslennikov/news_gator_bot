@@ -1,6 +1,7 @@
 import datetime
 from urllib.parse import urlsplit
 
+from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 from .base import AsyncSeleniumParser
@@ -50,26 +51,32 @@ class YandexNewsDetailParser(AsyncSeleniumParser):
     def parse(self) -> None:
         """Парсит детальную информацию о новости"""
         logger.debug(f'Парсим новость с яндекса {self.url}')
-        block_css_selector = "[class^='news-story-'][class$='__body']"
-        block = self._driver.find_element(By.CSS_SELECTOR, block_css_selector)
-        news_block_css_selector = "[class^='news-story-'][class$='__summarization-item']"
-        news_blocks = block.find_elements(By.CSS_SELECTOR, news_block_css_selector)
-        content = ''
-        for news_block in news_blocks:
-            content += news_block.find_element(By.TAG_NAME, 'span').text
-            url_block = news_block.find_element(By.TAG_NAME, 'a')
-            split_url = urlsplit(url_block.get_attribute('href'))
-            url = f'{split_url.scheme}://{split_url.netloc}{split_url.path}'
-            content += f'\n<a href="{url}">{url_block.text}</a>\n'
+        try:
+            block_css_selector = "[class^='news-story-'][class$='__body']"
+            block = self._driver.find_element(By.CSS_SELECTOR, block_css_selector)
+            news_block_css_selector = "[class^='news-story-'][class$='__summarization-item']"
+            news_blocks = block.find_elements(By.CSS_SELECTOR, news_block_css_selector)
+            content = ''
+            for news_block in news_blocks:
+                content += news_block.find_element(By.TAG_NAME, 'span').text
+                url_block = news_block.find_element(By.TAG_NAME, 'a')
+                split_url = urlsplit(url_block.get_attribute('href'))
+                url = f'{split_url.scheme}://{split_url.netloc}{split_url.path}'
+                content += f'\n<a href="{url}">{url_block.text}</a>\n'
 
-        self.content = content
+            self.content = content
+        except NoSuchElementException as e:
+            logger.warning(f'Ошибка парсинга страницы {self.url} новость не найдена')
 
     async def proces_data(self) -> None:
         """Сохранение спарсенной новости в базу данных."""
-        await logger.debug(f'Сохраняем спарсенную новость в базу {self.url}')
-        async with session_scope() as session:
-            news = await get_news_by_url_repo(session, self.url)
-            news.content = self.content
+        if self.content:
+            await logger.debug(f'Сохраняем спарсенную новость в базу {self.url}')
+            async with session_scope() as session:
+                news = await get_news_by_url_repo(session, self.url)
+                news.content = self.content
+        else:
+            await logger.debug(f'Контент не получен нечего сохранять в бд {self.url}')
 
 
 class YandexNewsCategoryParser(AsyncSeleniumParser):
