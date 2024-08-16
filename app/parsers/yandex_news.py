@@ -96,7 +96,11 @@ class YandexNewsCategoryParser(AsyncSeleniumParser):
         descriptions = []
         urls = []
         for news_block in news_blocks:
-            images_urls.append(news_block.find_element(By.TAG_NAME, 'img').get_attribute('src'))
+            try:
+                images_urls.append(news_block.find_element(By.TAG_NAME, 'img').get_attribute('src'))
+            except NoSuchElementException:
+                images_urls.append(None)
+                logger.debug(f'Не найдено изображение для новости {self.url}')
             descriptions.append(news_block.find_element(By.CSS_SELECTOR, description_css_selector).text)
             titles.append(news_block.find_element(By.CSS_SELECTOR, title_css_selector).text)
             url_block = news_block.find_element(By.TAG_NAME, 'a')
