@@ -9,7 +9,7 @@ from ..db.repo import add_remote_categories_repo, get_resource_by_url_repo, get_
     get_remote_category_by_url_repo
 from ..db.session import session_scope
 from ..logging import logger
-from ..queue import add_news_to_parse_queue
+from ..queue import add_task_to_parse_queue
 
 
 class YandexNewsMainPageParser(AsyncSeleniumParser):
@@ -129,5 +129,5 @@ class YandexNewsCategoryParser(AsyncSeleniumParser):
                     description=self.descriptions[index],
                     detected_at=datetime.datetime.now(),
                 )
-                await add_news_to_parse_queue(news, YandexNewsDetailParser)
+                await add_task_to_parse_queue(news.news_url, YandexNewsDetailParser)
             remote_category.update_datetime = datetime.datetime.now()
