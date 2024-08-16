@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, SmallInteger, String, Text, Uuid, text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, SmallInteger, String, Text, Uuid, text, Interval
 from sqlalchemy.orm import relationship
 
 from app.db.models.base import Base
@@ -14,8 +14,9 @@ class Resource(Base):
         server_default=text('gen_random_uuid()'),
         comment='Идентификатор новостного ресурса',
     )
-    url = Column(Text, nullable=False, comment='Адрес новостного ресурса')
-    update_interval = Column(Integer, nullable=False, comment='Частота обновления в секундах')
+    url = Column(Text, nullable=False, comment='Адрес новостного ресурса', unique=True)
+    update_interval = Column(Interval, nullable=False, comment='Частота обновления в секундах')
+    update_datetime = Column(DateTime, nullable=True, comment='Дата и время последнего обновления')
     title = Column(String(255), nullable=False, comment='Название новостного ресурса')
     comment = Column(Text, comment='Комментарий')
     parser_id = Column(Integer, ForeignKey('cl_parsers.id'), nullable=False, comment='Идентификатор парсера')
@@ -52,9 +53,10 @@ class RemoteCategory(Base):
         comment='Идентификатор категории ресурса'
     )
     name = Column(String(100), comment='Название категории', nullable=False)
-    url = Column(Text, comment='Ссылка на категорию', nullable=False, unique=True)
+    url = Column(Text, comment='Ссылка на категорию', nullable=False)
     news_resource_id = Column(Uuid(as_uuid=True), ForeignKey('nf_resources.id'), nullable=False)
-    update_interval = Column(Integer, nullable=True, comment='Интервал обновление в секундах')
+    update_interval = Column(Interval, nullable=True, comment='Интервал обновление в секундах')
+    update_datetime = Column(DateTime, nullable=True, comment='Дата и время последнего обновления')
     category_id = Column(
         Integer, ForeignKey('cl_categories.id'), nullable=True, comment='Локальная категория новостей',
     )
@@ -67,6 +69,7 @@ class RemoteCategory(Base):
     news = relationship('News', back_populates='remote_categories', secondary=NewsRemoteCategory.__table__)
     category = relationship('Category', back_populates='remote_categories')
     resource = relationship('Resource', back_populates='remote_categories')
+    parser = relationship('Parser', back_populates='remote_categories')
 
 
 class News(Base):
@@ -80,7 +83,7 @@ class News(Base):
     description = Column(Text, nullable=False, comment='Краткий анонс новости')
     content = Column(Text, comment='Текст новости')
     news_url = Column(Text, unique=True, nullable=False, comment='Ссылка на новость')
-    published_at = Column(DateTime, nullable=False, comment='Дата публикации')
+    published_at = Column(DateTime, nullable=True, comment='Дата публикации')
     detected_at = Column(DateTime, nullable=False, comment='Дата добавления в базу')
     author = Column(Text, comment='Информация об авторе')
 
@@ -108,10 +111,10 @@ class UserSubscription(Base):
     id = Column(Uuid(as_uuid=True), primary_key=True, server_default=text('gen_random_uuid()'))
     user_id = Column(Integer, ForeignKey('bot_users.user_id', ondelete='CASCADE'), nullable=False)
     resource_id = Column(
-        Uuid(as_uuid=True), ForeignKey('nf_resources.id', ondelete='CASCADE'), nullable=False,
+        Uuid(as_uuid=True), ForeignKey('nf_resources.id', ondelete='CASCADE'), nullable=True,
     )
     category_id = Column(
-        SmallInteger, ForeignKey('cl_categories.id', ondelete='CASCADE'), nullable=False,
+        SmallInteger, ForeignKey('cl_categories.id', ondelete='CASCADE'), nullable=True,
     )
 
     user = relationship('User', back_populates='user_subscriptions')

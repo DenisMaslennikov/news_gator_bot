@@ -1,11 +1,12 @@
 import uuid
-from typing import Sequence
+from datetime import datetime, timedelta
+from typing import Sequence, List
 
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import User, UserSubscription, Resource, Category
-from app.db.models.news_feed import RemoteCategory
+from app.db.models.news_feed import RemoteCategory, News
 from app.db.tools.sqlalchemy_tools import get_or_create, joinedload_all_relationships
 from app.logging import logger
 
@@ -124,10 +125,148 @@ async def get_news_resources_repo(session: AsyncSession) -> Sequence[Resource]:
 
 async def add_remote_categories_repo(session: AsyncSession, name: str, url: str, news_resource_id: uuid.UUID) -> None:
     """
-
+    Добавляет новую удаленную категорию если она еще не существует.
     :param session: Объект сессии SQLAlchemy
     :param name: Название категории
     :param url: Ссылка на страницу категории.
     :param news_resource_id: Идентификатор новостного ресурса.
     """
     await get_or_create(session, RemoteCategory, name=name, url=url, news_resource_id=news_resource_id)
+
+
+async def get_resource_by_url_repo(session: AsyncSession, url: str) -> Resource:
+    """
+    Получение информации о ресурсе по ссылке.
+    :param session: Объект сессии SQLAlchemy.
+    :param url: Ссылка по которой необходимо найти ресурс.
+    :return: Объект Resource.
+    """
+    stmt = select(Resource).filter(Resource.url == url)
+    result = await session.execute(stmt)
+    return result.scalars().first()
+
+
+async def get_resources_for_update_repo(session: AsyncSession, *options) -> Sequence[Resource]:
+    """
+    Получение списка ресурсов которые необходимо обновить.
+    :param session: Объект сессии SQLAlchemy.
+    :param options: Опции запроса.
+    :return: Список ресурсов для обновления.
+    """
+    stmt = select(Resource).filter(
+        or_(
+            Resource.update_datetime + Resource.update_interval < datetime.now(),
+            Resource.update_datetime.is_(None),
+        )
+    )
+    if options:
+        stmt = stmt.options(*options)
+    result = await session.execute(stmt)
+    return result.scalars().all()
+
+
+async def get_resource_timeout_repo(session: AsyncSession) -> timedelta:
+    """
+    Получение времени до ближайшего обновления рессурса.
+    :param session:  Объект сессии SQLAlchemy.
+    :return: Время в секундах до следующего обновления ресурса.
+    """
+    stmt = select(
+        func.min(func.coalesce((Resource.update_datetime + Resource.update_interval), datetime.now())) - datetime.now()
+    )
+    result = await session.execute(stmt)
+    return result.scalar()
+
+
+async def get_categories_timeout_repo(session: AsyncSession) -> timedelta:
+    """
+    Получение времени до ближайшего обновления категории.
+    :param session:  Объект сессии SQLAlchemy.
+    :return: Время в секундах до следующего обновления категории.
+    """
+    stmt = select(
+        func.min(
+            func.coalesce(
+                (RemoteCategory.update_datetime + RemoteCategory.update_interval), datetime.now()
+            )
+        )
+        - datetime.now()
+    ).where(
+        RemoteCategory.parser_id.isnot(None),
+        RemoteCategory.category_id.isnot(None),
+        or_ (
+            RemoteCategory.deletion_datetime.is_(None),
+            RemoteCategory.deletion_datetime > datetime.now(),
+        ),
+        or_(
+            Category.deletion_datetime.is_(None),
+            Category.deletion_datetime > datetime.now(),
+        )
+
+    ).join(Category)
+    result = await session.execute(stmt)
+    return result.scalar()
+
+
+async def get_categories_for_update_repo(session: AsyncSession, *options) -> Sequence[RemoteCategory]:
+    """
+    Получение списка категорий для обновления.
+    :param session: Объект сессии SQLAlchemy.
+    :param options: Опции запроса.
+    :return: Список категорий для обновления.
+    """
+    stmt = select(RemoteCategory).filter(
+        RemoteCategory.parser_id.isnot(None),
+        RemoteCategory.category_id.isnot(None),
+        or_(
+            RemoteCategory.deletion_datetime.is_(None),
+            RemoteCategory.deletion_datetime > datetime.now(),
+        ),
+        or_(
+            Category.deletion_datetime.is_(None),
+            Category.deletion_datetime > datetime.now(),
+        ),
+        or_(
+            RemoteCategory.update_datetime.is_(None),
+            RemoteCategory.update_datetime + RemoteCategory.update_interval < datetime.now(),
+        )
+    ).join(Category)
+    if options:
+        stmt = stmt.options(*options)
+    result = await session.execute(stmt)
+    return result.scalars().all()
+
+async def get_news_by_url_repo(session: AsyncSession, url: str) -> News | None:
+    """
+    Получение новости по ссылке.
+    :param session:
+    :param url:
+    :return: Объект новости если он существует None если он не найден.
+    """
+    stmt = select(News).where(News.news_url == url)
+    result = await session.execute(stmt)
+    return result.scalars().first()
+
+
+async def create_news_repo(session: AsyncSession, **kwargs) -> News:
+    """
+    Создание новости.
+    :param session: Объект сессии SQLAlchemy.
+    :param kwargs: Поля модели News для создания.
+    """
+    news = News(**kwargs)
+    session.add(news)
+    return news
+
+
+async def get_remote_category_by_url_repo(session: AsyncSession, url: str) -> RemoteCategory:
+    """
+    Получает удаленную категорию по адресу ссылки.
+    :param session: Объект сессии SQLAlchemy.
+    :param url: Ссылка на страницу категории.
+    :return: Объект RemoteCategory.
+    """
+    stmt = select(RemoteCategory).where(RemoteCategory.url == url)
+    result = await session.execute(stmt)
+    return result.scalars().first()
+

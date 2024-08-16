@@ -104,14 +104,14 @@ async def subscriptions_callback_handler(callback: types.CallbackQuery, state: F
     :param state: Объект состояния.
     """
     await logger.debug(f'Управление подпиской на {callback.data}')
-    news_source_id = callback.data
-    news_source = await get_news_source(news_source_id)
-    response = f'Управление подпиской на {news_source.title}'
+    resource_id = callback.data
+    resource = await get_news_source(resource_id)
+    response = f'Управление подпиской на {resource.title}'
     await callback.answer(response)
 
-    await state.update_data(news_source_id=news_source_id)
+    await state.update_data(resource_id=resource_id)
 
-    if await subscription_status(callback.from_user.id, news_source_id):
+    if await subscription_status(callback.from_user.id, resource_id):
         await callback.message.edit_text(
             response, reply_markup=unsubscribe_keyboard
         )

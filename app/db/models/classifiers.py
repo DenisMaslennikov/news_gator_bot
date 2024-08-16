@@ -45,3 +45,4 @@ class Parser(Base):
     parser_class = Column(String(120), comment='Класс парсера')
 
     resources = relationship('Resource', back_populates='parser')
+    remote_categories = relationship('RemoteCategory', back_populates='parser')

@@ -1,8 +1,8 @@
-"""initial_migration
+"""initial_migrations
 
 Revision ID: 0001
 Revises: 
-Create Date: 2024-08-13 22:00:01.810289
+Create Date: 2024-08-14 18:30:57.582798
 
 """
 from typing import Sequence, Union
@@ -84,7 +84,8 @@ def upgrade() -> None:
     op.create_table('nf_resources',
     sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False, comment='Идентификатор новостного ресурса'),
     sa.Column('url', sa.Text(), nullable=False, comment='Адрес новостного ресурса'),
-    sa.Column('update_interval', sa.Integer(), nullable=False, comment='Частота обновления в секундах'),
+    sa.Column('update_interval', sa.Interval(), nullable=False, comment='Частота обновления в секундах'),
+    sa.Column('update_datetime', sa.DateTime(), nullable=True, comment='Дата и время последнего обновления'),
     sa.Column('title', sa.String(length=255), nullable=False, comment='Название новостного ресурса'),
     sa.Column('comment', sa.Text(), nullable=True, comment='Комментарий'),
     sa.Column('parser_id', sa.Integer(), nullable=False, comment='Идентификатор парсера'),
@@ -99,7 +100,8 @@ def upgrade() -> None:
     sa.Column('name', sa.String(length=100), nullable=False, comment='Название категории'),
     sa.Column('url', sa.Text(), nullable=False, comment='Ссылка на категорию'),
     sa.Column('news_resource_id', sa.Uuid(), nullable=False),
-    sa.Column('update_interval', sa.Integer(), nullable=True, comment='Интервал обновление в секундах'),
+    sa.Column('update_interval', sa.Interval(), nullable=True, comment='Интервал обновление в секундах'),
+    sa.Column('update_datetime', sa.DateTime(), nullable=True, comment='Дата и время последнего обновления'),
     sa.Column('category_id', sa.Integer(), nullable=True, comment='Локальная категория новостей'),
     sa.Column('parser_id', sa.Integer(), nullable=True, comment='Идентификатор парсера'),
     sa.Column('deletion_datetime', sa.DateTime(), nullable=True, comment='Дата и время удаления'),
@@ -114,8 +116,8 @@ def upgrade() -> None:
     op.create_table('nf_user_subscription',
     sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('resource_id', sa.Uuid(), nullable=False),
-    sa.Column('category_id', sa.SmallInteger(), nullable=False),
+    sa.Column('resource_id', sa.Uuid(), nullable=True),
+    sa.Column('category_id', sa.SmallInteger(), nullable=True),
     sa.ForeignKeyConstraint(['category_id'], ['cl_categories.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['resource_id'], ['nf_resources.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['bot_users.user_id'], ondelete='CASCADE'),

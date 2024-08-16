@@ -1,6 +1,6 @@
-from .queue import message_queue, parse_queue
+from .queue import add_news_to_parse_queue, get_task_from_news_parse_queue
 
 __all__ = [
-    'parse_queue',
-    'message_queue',
+    'add_news_to_parse_queue',
+    'get_task_from_news_parse_queue',
 ]
