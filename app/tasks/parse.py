@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 
 from sqlalchemy.orm import joinedload
 
@@ -35,8 +36,9 @@ async def create_resource_parse_tasks() -> None:
     async with session_scope() as session:
         resources_for_update = await get_resources_for_update_repo(session, joinedload(Resource.parser))
 
-    for resource in resources_for_update:
-        await create_parse_task(resource.url, get_parser(resource.parser.parser_class))
+        for resource in resources_for_update:
+            resource.update_datetime = datetime.now()
+            await create_parse_task(resource.url, get_parser(resource.parser.parser_class))
 
 
 async def create_category_parse_tasks() -> None:
@@ -44,8 +46,9 @@ async def create_category_parse_tasks() -> None:
     async with session_scope() as session:
         categories_for_update = await get_categories_for_update_repo(session, joinedload(RemoteCategory.parser))
 
-    for category in categories_for_update:
-        await create_parse_task(category.url, get_parser(category.parser.parser_class))
+        for category in categories_for_update:
+            category.update_datetime = datetime.now()
+            await create_parse_task(category.url, get_parser(category.parser.parser_class))
 
 
 async def parse_resources_loop() -> None:
@@ -79,7 +82,7 @@ async def create_parse_task(url: str, parser_class: Type[BaseParser]) -> None:
     :param parser_class: Класс парсера.
     """
     loop = asyncio.get_running_loop()
-    await loop.create_task(_parse_task(parser_class, url))
+    loop.create_task(_parse_task(parser_class, url))
 
 
 async def parse_queue_loop() -> None:

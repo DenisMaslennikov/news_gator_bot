@@ -88,17 +88,6 @@ class AsyncSeleniumParser(BaseParser):
             options.add_argument('--disable-infobars')
             self._driver = webdriver.Chrome(options=options)
 
-            # stealth(driver=self._driver,
-            #         user_agent=self.user_agent,
-            #         languages=["ru-RU", "ru"],
-            #         vendor="Google Inc.",
-            #         platform="Win32",
-            #         webgl_vendor="Intel Inc.",
-            #         renderer="Intel Iris OpenGL Engine",
-            #         fix_hairline=True,
-            #         run_on_insecure_origins=True
-            #         )
-
         elif driver_name.lower() == 'firefox':
             options = FirefoxOptions()
             options.headless = True

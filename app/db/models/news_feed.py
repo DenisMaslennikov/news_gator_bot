@@ -80,7 +80,7 @@ class News(Base):
         Uuid(as_uuid=True), primary_key=True, server_default=text('gen_random_uuid()'), comment='Идентификатор новости',
     )
     title = Column(Text, nullable=False, comment='Заголовок новости')
-    description = Column(Text, nullable=False, comment='Краткий анонс новости')
+    description = Column(Text, nullable=True, comment='Краткий анонс новости')
     content = Column(Text, comment='Текст новости')
     news_url = Column(Text, unique=True, nullable=False, comment='Ссылка на новость')
     published_at = Column(DateTime, nullable=True, comment='Дата публикации')

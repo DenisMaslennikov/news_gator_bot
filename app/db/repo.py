@@ -6,7 +6,7 @@ from sqlalchemy import select, insert, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import User, UserSubscription, Resource, Category
-from app.db.models.news_feed import RemoteCategory, News
+from app.db.models.news_feed import RemoteCategory, News, NewsRemoteCategory
 from app.db.tools.sqlalchemy_tools import get_or_create, joinedload_all_relationships
 from app.logging import logger
 
@@ -270,3 +270,14 @@ async def get_remote_category_by_url_repo(session: AsyncSession, url: str) -> Re
     result = await session.execute(stmt)
     return result.scalars().first()
 
+
+async def add_remote_category_to_news_repo(
+    session: AsyncSession, remote_category_id: uuid.UUID, news_id: uuid.UUID
+) -> None:
+    """
+    Привязывает к новости удаленную категорию.
+    :param session: Объект сессии SQLAlchemy.
+    :param remote_category_id: Идентификатор категории
+    :param news_id: Идентификатор новости
+    """
+    await get_or_create(session, NewsRemoteCategory, remote_category_id=remote_category_id, news_id=news_id)

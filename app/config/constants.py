@@ -1,4 +1,4 @@
-import os.path
+import os
 
 # Настройка логирования
 CONSOLE_LOG_LEVEL = 'DEBUG'
@@ -8,3 +8,5 @@ LOG_FILE = os.path.join('logs', 'bot.log')
 
 CHROME_BINARY_LOCATION = '/opt/chrome/chrome-linux64/chrome'
 CHROMEDRIVER_LOCATION = '/opt/chromedriver/chromedriver-linux64/chromedriver'
+
+PARSERS_THREADS = os.cpu_count() * 2 + 1
