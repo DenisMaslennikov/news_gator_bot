@@ -86,7 +86,7 @@ class YandexNewsCategoryBaseParser(AsyncSeleniumParser):
     async def proces_data(self) -> None:
         """Сохранение спаршенных данных о новостях"""
         logger.debug(f'Сохраняем спарсенные c {self.url} данные')
-
+        news_list = []
         async with self.lock:
             async with session_scope() as session:
                 remote_category = await get_remote_category_by_url_repo(session, self.url)
@@ -100,9 +100,11 @@ class YandexNewsCategoryBaseParser(AsyncSeleniumParser):
                             description=self.descriptions[index],
                             detected_at=datetime.datetime.now(),
                         )
-                        await add_task_to_parse_queue(news.news_url, YandexNewsDetailParser)
                         await session.flush()
+                        news_list.append(news)
                     await add_remote_category_to_news_repo(session, remote_category.id, news.id)
+        for news in news_list:
+            await add_task_to_parse_queue(news.news_url, YandexNewsDetailParser)
 
 
 class YandexNewsCategoryParser(YandexNewsCategoryBaseParser):
@@ -111,7 +113,7 @@ class YandexNewsCategoryParser(YandexNewsCategoryBaseParser):
     def parse(self) -> None:
         """Парсим новости со страницы категории без подкатегорий."""
         logger.debug(f'Распарсиваем страницу категории {self.url}')
-        news_feed_class_name = 'Feed-desktop__list-3q'
+        news_feed_class_name = 'news-site--Feed-desktop__list-3q'
         news_feed_block = self._driver.find_element(By.CLASS_NAME, news_feed_class_name)
         news_block_css_selector = ".mg-card__shown-card[class*='news-card2-'][class*='__show-']"
         description_css_selector = "[class^='news-card2-'][class$='__annotation']"
@@ -156,7 +158,7 @@ class YandexNewsCategoryWithSubCategoriesParser(YandexNewsCategoryBaseParser):
         left_news_blocks = left_block.find_elements(By.TAG_NAME, 'article')
 
         for block in left_news_blocks:
-            titles.append(block.find_element(By.CLASS_NAME, 'card-part-news-title__title-3m').text)
+            titles.append(block.find_element(By.CLASS_NAME, 'news-site--card-part-news-title__title-3m').text)
             try:
                 images_urls.append(block.find_element(By.TAG_NAME, 'img').get_attribute('src'))
             except NoSuchElementException:
@@ -165,12 +167,13 @@ class YandexNewsCategoryWithSubCategoriesParser(YandexNewsCategoryBaseParser):
             descriptions.append(
                 block.find_element(
                     By.CSS_SELECTOR,
-                    ".card-part-news-description__description-3W[class*='card-part-news-description__line-']"
+                    ".news-site--card-part-news-description__description-3W[class*='news-site--card-part-news-descript"
+                    "ion__line-']"
                 ).text
             )
             url = block.find_element(
                 By.CSS_SELECTOR,
-                '.card-part-content-wrapper__contentWrapper-27.card-part-content-wrapper__news-1l'
+                '.news-site--card-part-content-wrapper__contentWrapper-27.news-site--card-part-content-wrapper__news-1l'
             ).find_element(By.TAG_NAME, 'a').get_attribute('href')
             split_url = urlsplit(url)
             urls.append(f'{split_url.scheme}://{split_url.netloc}{split_url.path}')
@@ -184,10 +187,11 @@ class YandexNewsCategoryWithSubCategoriesParser(YandexNewsCategoryBaseParser):
             url = block.find_element(By.TAG_NAME, 'a').get_attribute('href')
             split_url = urlsplit(url)
             urls.append(f'{split_url.scheme}://{split_url.netloc}{split_url.path}')
-        down_block_css_class_name = 'Feed-desktop__list-3q'
+        down_block_css_class_name = 'news-site--Feed-desktop__list-3q'
         down_block = self._driver.find_element(By.CLASS_NAME, down_block_css_class_name)
+
         down_news_blocks = down_block.find_elements(
-            By.CSS_SELECTOR, '.mg-card__shown-card.CardHorizontal__showCardWrapper-1t'
+            By.CSS_SELECTOR, '.mg-card__shown-card[class*="news-card2-redesign__show-"]'
         )
         for block in down_news_blocks:
             url = block.find_element(By.TAG_NAME, 'a').get_attribute('href')

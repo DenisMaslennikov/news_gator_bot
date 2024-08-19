@@ -10,3 +10,5 @@ CHROME_BINARY_LOCATION = '/opt/chrome/chrome-linux64/chrome'
 CHROMEDRIVER_LOCATION = '/opt/chromedriver/chromedriver-linux64/chromedriver'
 
 PARSERS_THREADS = os.cpu_count() * 2 + 1
+
+MAX_SELENIUM_TASKS = 5

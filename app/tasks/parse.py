@@ -8,15 +8,19 @@ from typing import Type
 
 import fake_useragent
 
+from app.config.constants import MAX_SELENIUM_TASKS
 from app.db.models import Resource
 from app.db.models.news_feed import RemoteCategory, News
 from app.db.repo import get_resources_for_update_repo, get_resource_timeout_repo, get_categories_timeout_repo, \
     get_categories_for_update_repo
 from app.db.session import session_scope
 from app.logging import logger
-from app.parsers.base import BaseParser
+from app.parsers.base import BaseParser, AsyncSeleniumParser
 from app.queue import get_task_from_parse_queue
 
+
+
+selenium_semaphore = asyncio.Semaphore(MAX_SELENIUM_TASKS)
 
 def get_parser(parser_name: str) -> Type[BaseParser]:
     """
@@ -94,13 +98,19 @@ async def parse_queue_loop() -> None:
         await create_parse_task(task['url'], task['parser_class'])
 
 
-async def _parse_task(parser_class: Type[BaseParser], url: str):
+async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:
     """
     Обработчик задачи парсинга.
     :param parser_class: Класс парсера для обработки url.
     :param url: Ссылка которую необходимо спарсить.
     """
-    parse = parser_class(url, fake_useragent.UserAgent(browsers='chrome', platforms='pc').random)
-    await parse.fetch_data()
-    parse.parse()
-    await parse.proces_data()
+    try:
+        if issubclass(parser_class, AsyncSeleniumParser):
+            await selenium_semaphore.acquire()
+        parse = parser_class(url, fake_useragent.UserAgent(browsers='chrome', platforms='pc').random)
+        await parse.fetch_data()
+        parse.parse()
+        await parse.proces_data()
+    finally:
+        if issubclass(parser_class, AsyncSeleniumParser):
+            selenium_semaphore.release()
