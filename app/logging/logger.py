@@ -3,8 +3,8 @@ from aiologger.formatters.base import Formatter
 from aiologger.handlers.files import AsyncFileHandler
 from aiologger.handlers.streams import AsyncStreamHandler
 
-from config import settings
 from app.config.constants import FILE_LOG_LEVEL, LOG_FILE, LOG_FORMAT
+from config import settings
 
 formatter = Formatter(fmt=LOG_FORMAT)
 

@@ -1,5 +1,5 @@
-from app.logging import logger
 from app.bot import bot
+from app.logging import logger
 
 
 # Функция для отправки сообщения пользователю

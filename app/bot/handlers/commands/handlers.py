@@ -1,12 +1,18 @@
-from aiogram import Router, types, F
-from aiogram.dispatcher import router
+from aiogram import F, Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
-from app.bot.handlers.commands.service import register_user, delete_user, get_user, subscription_status, subscribe_user, \
-    unsubscribe_user, get_news_source
-from app.bot.handlers.commands.stases import UnregisterConfirm, SubscriptionsController
-from app.bot.handlers.keyboards.keyboards import news_source_keyboard, unsubscribe_keyboard, subscribe_keyboard
+from app.bot.handlers.commands.service import (
+    delete_user,
+    get_news_source,
+    get_user,
+    register_user,
+    subscribe_user,
+    subscription_status,
+    unsubscribe_user,
+)
+from app.bot.handlers.commands.states import SubscriptionsController, UnregisterConfirm
+from app.bot.handlers.keyboards.keyboards import news_source_keyboard, subscribe_keyboard, unsubscribe_keyboard
 from app.logging import logger
 
 command_router = Router()
@@ -66,6 +72,7 @@ async def unregister_command_handler(message: types.Message, state: FSMContext) 
 async def unregister_confirm(message: types.Message, state: FSMContext) -> None:
     """
     Обработчик подтверждения удаления регистрации.
+
     :param message: Объект сообщения.
     :param state: Объект состояния.
     """
@@ -85,6 +92,7 @@ async def unregister_confirm(message: types.Message, state: FSMContext) -> None:
 async def subscriptions_command_handler(message: types.Message, state: FSMContext) -> None:
     """
     Обработчик команды подписок.
+
     :param message: Объект сообщения.
     :param state: Объект состояния.
     """
@@ -100,13 +108,15 @@ async def subscriptions_command_handler(message: types.Message, state: FSMContex
 async def subscriptions_callback_handler(callback: types.CallbackQuery, state: FSMContext) -> None:
     """
     Управление подпиской на конкретный ресурс.
+
     :param callback: Объект CallbackQuery.
     :param state: Объект состояния.
     """
     await logger.debug(f'Управление подпиской на {callback.data}')
     resource_id = callback.data
     resource = await get_news_source(resource_id)
-    response = f'Управление подпиской на {resource.title}'
+    response = f'Управление подпиской на {resource.title}.\n({resource.comment})'
+
     await callback.answer(response)
 
     await state.update_data(resource_id=resource_id)
@@ -126,6 +136,7 @@ async def subscriptions_callback_handler(callback: types.CallbackQuery, state: F
 async def update_subscriptions_callback_handler(callback: types.CallbackQuery, state: FSMContext) -> None:
     """
     Управление подпиской на конкретный ресурс.
+
     :param callback: Объект CallbackQuery.
     :param state: Объект состояния.
     """
@@ -133,12 +144,12 @@ async def update_subscriptions_callback_handler(callback: types.CallbackQuery, s
     data = await state.get_data()
     if callback.data.lower() == 'true':
         await subscribe_user(callback.from_user.id, **data)
-        await callback.answer(f'Вы подписаны')
+        await callback.answer('Вы подписаны')
     elif callback.data.lower() == 'back':
         pass
     elif callback.data.lower() == 'false':
         await unsubscribe_user(callback.from_user.id, **data)
-        await callback.answer(f'Подписка отменена')
+        await callback.answer('Подписка отменена')
     await callback.message.edit_text(
         'Возможные ресурсы для подписки', reply_markup=await news_source_keyboard()
     )

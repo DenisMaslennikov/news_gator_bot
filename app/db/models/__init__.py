@@ -1,11 +1,11 @@
 from .bot import User, UserRole
-from .classifiers import Category, ResourceType, Role, Parser
+from .classifiers import Category, Parser, ResourceType, Role
 from .news_feed import (
-    News,
     Image,
+    News,
+    NewsRemoteCategory,
     Resource,
     UserSubscription,
-    NewsRemoteCategory,
 )
 
 __all__ = [

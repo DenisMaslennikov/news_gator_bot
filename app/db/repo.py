@@ -1,12 +1,12 @@
 import uuid
 from datetime import datetime, timedelta
-from typing import Sequence, List
+from typing import Sequence
 
-from sqlalchemy import select, insert, func, or_
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import User, UserSubscription, Resource, Category
-from app.db.models.news_feed import RemoteCategory, News, NewsRemoteCategory
+from app.db.models import Category, Resource, User, UserSubscription
+from app.db.models.news_feed import News, NewsRemoteCategory, RemoteCategory
 from app.db.tools.sqlalchemy_tools import get_or_create, joinedload_all_relationships
 from app.logging import logger
 
@@ -14,17 +14,19 @@ from app.logging import logger
 async def register_user_repo(session: AsyncSession, user_id: int) -> bool:
     """
     Регистрация нового пользователя в базе данных.
+
     :param session:  Объект сессии SQLAlchemy.
     :param user_id:  Идентификатор пользователя.
-    :return: Строка со статусом.
+    :return: True если пользователь зарегистрирован False если он ранее был зарегистрирован.
     """
-    instance, created = await get_or_create(session, User, user_id=user_id)
+    _, created = await get_or_create(session, User, user_id=user_id)
     return created
 
 
 async def get_user_repo(session: AsyncSession, user_id: int, *options, joinedload_all: bool = False) -> User | None:
     """
     Получение пользователя по id.
+
     :param session:  Объект сессии SQLAlchemy.
     :param user_id: Идентификатор пользователя.
     :param options: Опции для запроса.
@@ -48,6 +50,7 @@ async def get_user_repo(session: AsyncSession, user_id: int, *options, joinedloa
 async def delete_all_user_subscriptions_repo(session: AsyncSession, user: User) -> None:
     """
     Удаляет все подписки пользователя.
+
     :param session: Объект сессии SQLAlchemy.
     :param user: Объект модели Users у которого необходимо удалить подписки.
     """
@@ -57,7 +60,8 @@ async def delete_all_user_subscriptions_repo(session: AsyncSession, user: User) 
 
 async def delete_user_repo(session: AsyncSession, user: User) -> None:
     """
-    Удаляет пользователя из базы данных
+    Удаляет пользователя из базы данных.
+
     :param session: Объект сессии SQLAlchemy.
     :param user: Объект модели User который необходимо удалить.
     """
@@ -68,6 +72,7 @@ async def delete_user_repo(session: AsyncSession, user: User) -> None:
 async def get_subscription_repo(session: AsyncSession, user_id: int, resource_id: str) -> UserSubscription:
     """
     Проверяет подписку у пользователя в базе данных.
+
     :param session: Объект сессии SQLAlchemy.
     :param user_id: Идентификатор пользователя.
     :param resource_id: Идентификатор ресурса.
@@ -83,6 +88,7 @@ async def get_subscription_repo(session: AsyncSession, user_id: int, resource_id
 async def subscribe_user_repo(session: AsyncSession, user_id: int, resource_id: str) -> None:
     """
     Подписывает пользователя на ресурс.
+
     :param session: Объект сессии SQLAlchemy.
     :param user_id: Идентификатор пользователя.
     :param resource_id: Идентификатор ресурса.
@@ -94,6 +100,7 @@ async def subscribe_user_repo(session: AsyncSession, user_id: int, resource_id: 
 async def delete_subscription_repo(session: AsyncSession, subscription: UserSubscription) -> None:
     """
     Удаляет подписку пользователя на ресурс.
+
     :param session: Объект сессии SQLAlchemy.
     :param subscription: Объект подписки который необходимо удалить.
     """
@@ -103,6 +110,7 @@ async def delete_subscription_repo(session: AsyncSession, subscription: UserSubs
 async def get_news_resource_repo(session: AsyncSession, resource_id: str) -> Resource:
     """
      Получение информации о новостном ресурсе их базы данных.
+
     :param session: Объект сессии SQLAlchemy.
     :param resource_id: Идентификатор новостного ресурса.
     :return: Объект Resource.
@@ -115,6 +123,7 @@ async def get_news_resource_repo(session: AsyncSession, resource_id: str) -> Res
 async def get_news_resources_repo(session: AsyncSession) -> Sequence[Resource]:
     """
     Получение списка источников новостей доступных для подписки из базы данных.
+
     :param session: Объект сессии SQLAlchemy
     :return: Список объектов Resource
     """
@@ -126,6 +135,7 @@ async def get_news_resources_repo(session: AsyncSession) -> Sequence[Resource]:
 async def add_remote_categories_repo(session: AsyncSession, name: str, url: str, news_resource_id: uuid.UUID) -> None:
     """
     Добавляет новую удаленную категорию если она еще не существует.
+
     :param session: Объект сессии SQLAlchemy
     :param name: Название категории
     :param url: Ссылка на страницу категории.
@@ -137,6 +147,7 @@ async def add_remote_categories_repo(session: AsyncSession, name: str, url: str,
 async def get_resource_by_url_repo(session: AsyncSession, url: str) -> Resource:
     """
     Получение информации о ресурсе по ссылке.
+
     :param session: Объект сессии SQLAlchemy.
     :param url: Ссылка по которой необходимо найти ресурс.
     :return: Объект Resource.
@@ -149,6 +160,7 @@ async def get_resource_by_url_repo(session: AsyncSession, url: str) -> Resource:
 async def get_resources_for_update_repo(session: AsyncSession, *options) -> Sequence[Resource]:
     """
     Получение списка ресурсов которые необходимо обновить.
+
     :param session: Объект сессии SQLAlchemy.
     :param options: Опции запроса.
     :return: Список ресурсов для обновления.
@@ -168,6 +180,7 @@ async def get_resources_for_update_repo(session: AsyncSession, *options) -> Sequ
 async def get_resource_timeout_repo(session: AsyncSession) -> timedelta:
     """
     Получение времени до ближайшего обновления рессурса.
+
     :param session:  Объект сессии SQLAlchemy.
     :return: Время в секундах до следующего обновления ресурса.
     """
@@ -181,6 +194,7 @@ async def get_resource_timeout_repo(session: AsyncSession) -> timedelta:
 async def get_categories_timeout_repo(session: AsyncSession) -> timedelta:
     """
     Получение времени до ближайшего обновления категории.
+
     :param session:  Объект сессии SQLAlchemy.
     :return: Время в секундах до следующего обновления категории.
     """
@@ -194,7 +208,7 @@ async def get_categories_timeout_repo(session: AsyncSession) -> timedelta:
     ).where(
         RemoteCategory.parser_id.isnot(None),
         RemoteCategory.category_id.isnot(None),
-        or_ (
+        or_(
             RemoteCategory.deletion_datetime.is_(None),
             RemoteCategory.deletion_datetime > datetime.now(),
         ),
@@ -211,6 +225,7 @@ async def get_categories_timeout_repo(session: AsyncSession) -> timedelta:
 async def get_categories_for_update_repo(session: AsyncSession, *options) -> Sequence[RemoteCategory]:
     """
     Получение списка категорий для обновления.
+
     :param session: Объект сессии SQLAlchemy.
     :param options: Опции запроса.
     :return: Список категорий для обновления.
@@ -236,9 +251,11 @@ async def get_categories_for_update_repo(session: AsyncSession, *options) -> Seq
     result = await session.execute(stmt)
     return result.scalars().all()
 
+
 async def get_news_by_url_repo(session: AsyncSession, url: str) -> News | None:
     """
     Получение новости по ссылке.
+
     :param session:
     :param url:
     :return: Объект новости если он существует None если он не найден.
@@ -251,6 +268,7 @@ async def get_news_by_url_repo(session: AsyncSession, url: str) -> News | None:
 async def create_news_repo(session: AsyncSession, **kwargs) -> News:
     """
     Создание новости.
+
     :param session: Объект сессии SQLAlchemy.
     :param kwargs: Поля модели News для создания.
     """
@@ -262,6 +280,7 @@ async def create_news_repo(session: AsyncSession, **kwargs) -> News:
 async def get_remote_category_by_url_repo(session: AsyncSession, url: str) -> RemoteCategory:
     """
     Получает удаленную категорию по адресу ссылки.
+
     :param session: Объект сессии SQLAlchemy.
     :param url: Ссылка на страницу категории.
     :return: Объект RemoteCategory.
@@ -276,6 +295,7 @@ async def add_remote_category_to_news_repo(
 ) -> None:
     """
     Привязывает к новости удаленную категорию.
+
     :param session: Объект сессии SQLAlchemy.
     :param remote_category_id: Идентификатор категории
     :param news_id: Идентификатор новости

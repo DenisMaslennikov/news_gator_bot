@@ -3,10 +3,9 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 
 from selenium import webdriver
-from selenium.webdriver.firefox.service import Service as FirefoxService
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.chrome.options import Options as ChromeOptions
-
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
 from webdriver_manager.firefox import GeckoDriverManager
 
 from app.config.constants import CHROME_BINARY_LOCATION
@@ -19,6 +18,7 @@ class BaseParser(ABC):
     def __init__(self, url: str, user_agent: str) -> None:
         """
         Метод инициализации объекта класса парсера.
+
         :param url: Ссылка для парсинга.
         :param user_agent: Юсер агент для броузера.
         """
@@ -58,6 +58,7 @@ class AsyncSeleniumParser(BaseParser):
     def __init__(self, url: str, user_agent: str) -> None:
         """
         Инициализация selenium парсера.
+
         :param url: Ссылка для парсинга.
         :param user_agent: Юсер агент для броузера.
         """
@@ -69,19 +70,20 @@ class AsyncSeleniumParser(BaseParser):
     def _setup_driver(self, driver_name: str) -> None:
         """
         Устанавливает и настраивает драйвер для работы selenium.
+
         :param driver_name: Имя драйвера Firefox или Chrome.
         """
         logger.debug(f'создаю драйвер {driver_name}')
         if driver_name.lower() == 'chrome':
             options = ChromeOptions()
             options.binary_location = CHROME_BINARY_LOCATION
-            options.add_argument("start-maximized")
-            options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            options.add_argument('start-maximized')
+            options.add_experimental_option('excludeSwitches', ['enable-automation'])
             options.add_experimental_option('useAutomationExtension', False)
             options.add_argument('--disable-gpu')
             options.add_argument('--disable-dev-shm-usage')
-            options.add_argument("--disable-notifications")
-            options.add_argument("--disable-popup-blocking")
+            options.add_argument('--disable-notifications')
+            options.add_argument('--disable-popup-blocking')
             options.add_argument('--no-sandbox')
             options.add_argument('--headless')
             options.add_argument('--disable-infobars')
@@ -96,7 +98,6 @@ class AsyncSeleniumParser(BaseParser):
     def _fetch_data(self) -> None:
         """Функция для выполнения блокирующих операций Selenium."""
         self._driver.get(self.url)
-
 
     async def fetch_data(self) -> None:
         """Асинхронный метод для получения данных."""

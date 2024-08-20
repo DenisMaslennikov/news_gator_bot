@@ -5,12 +5,19 @@ from urllib.parse import urlsplit
 from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 
-from .base import AsyncSeleniumParser
-from app.db.repo import add_remote_categories_repo, get_resource_by_url_repo, get_news_by_url_repo, create_news_repo, \
-    get_remote_category_by_url_repo, add_remote_category_to_news_repo
+from app.db.repo import (
+    add_remote_categories_repo,
+    add_remote_category_to_news_repo,
+    create_news_repo,
+    get_news_by_url_repo,
+    get_remote_category_by_url_repo,
+    get_resource_by_url_repo,
+)
 from app.db.session import session_scope
 from app.logging import logger
 from app.queue import add_task_to_parse_queue
+
+from .base import AsyncSeleniumParser
 
 
 class YandexNewsMainPageParser(AsyncSeleniumParser):
@@ -23,18 +30,17 @@ class YandexNewsMainPageParser(AsyncSeleniumParser):
         categories_list = self._driver.find_element(
             By.CLASS_NAME, categories_class_name
         ).find_elements(By.TAG_NAME, 'a')
-        self.categories  = [
+        self.categories = [
             {
                 'name': category.text,
                 'url': category.get_attribute('href'),
             }
             for category in categories_list
         ]
-        logger.debug(f'Получен список категорий с яндекса')
+        logger.debug('Получен список категорий с яндекса')
         if not self.categories:
             logger.warning(f'Не удалось получить список категорий с яндекс новостей {self.__class__}')
             # TODO добавить отправку сообщения администратору
-
 
     async def proces_data(self) -> None:
         """Обновляет спарсенные данные в базе данных."""
@@ -50,7 +56,7 @@ class YandexNewsDetailParser(AsyncSeleniumParser):
     """Парсер детальной информации о новости."""
 
     def parse(self) -> None:
-        """Парсит детальную информацию о новости"""
+        """Парсит детальную информацию о новости."""
         logger.debug(f'Парсим новость с яндекса {self.url}')
         try:
             block_css_selector = "[class^='news-story-'][class$='__body']"
@@ -66,7 +72,7 @@ class YandexNewsDetailParser(AsyncSeleniumParser):
                 content += f'\n<a href="{url}">{url_block.text}</a>\n'
 
             self.content = content
-        except NoSuchElementException as e:
+        except NoSuchElementException:
             logger.warning(f'Ошибка парсинга страницы {self.url} новость не найдена')
 
     async def proces_data(self) -> None:
@@ -79,12 +85,13 @@ class YandexNewsDetailParser(AsyncSeleniumParser):
         else:
             await logger.debug(f'Контент не получен нечего сохранять в бд {self.url}')
 
+
 class YandexNewsCategoryBaseParser(AsyncSeleniumParser):
     """Базовый парсер категорий яндекса."""
     lock = asyncio.Lock()
 
     async def proces_data(self) -> None:
-        """Сохранение спаршенных данных о новостях"""
+        """Сохранение спаршенных данных о новостях."""
         logger.debug(f'Сохраняем спарсенные c {self.url} данные')
         news_list = []
         async with self.lock:
@@ -100,10 +107,9 @@ class YandexNewsCategoryBaseParser(AsyncSeleniumParser):
                             description=self.descriptions[index],
                             detected_at=datetime.datetime.now(),
                         )
-                        await session.flush()
                         news_list.append(news)
-                    await add_remote_category_to_news_repo(session, remote_category.id, news.id)
         for news in news_list:
+            await add_remote_category_to_news_repo(session, remote_category.id, news.id)
             await add_task_to_parse_queue(news.news_url, YandexNewsDetailParser)
 
 
@@ -118,7 +124,7 @@ class YandexNewsCategoryParser(YandexNewsCategoryBaseParser):
         news_block_css_selector = ".mg-card__shown-card[class*='news-card2-'][class*='__show-']"
         description_css_selector = "[class^='news-card2-'][class$='__annotation']"
         title_css_selector = "[class^='news-card2-'][class$='__title']"
-        news_blocks = news_feed_block.find_elements(By.CSS_SELECTOR, news_block_css_selector )
+        news_blocks = news_feed_block.find_elements(By.CSS_SELECTOR, news_block_css_selector)
         images_urls = []
         titles = []
         descriptions = []
@@ -128,7 +134,7 @@ class YandexNewsCategoryParser(YandexNewsCategoryBaseParser):
                 images_urls.append(news_block.find_element(By.TAG_NAME, 'img').get_attribute('src'))
             except NoSuchElementException:
                 images_urls.append(None)
-                logger.debug(f'Не найдено изображение для новости')
+                logger.debug('Не найдено изображение для новости')
             descriptions.append(news_block.find_element(By.CSS_SELECTOR, description_css_selector).text)
             titles.append(news_block.find_element(By.CSS_SELECTOR, title_css_selector).text)
             url_block = news_block.find_element(By.TAG_NAME, 'a')

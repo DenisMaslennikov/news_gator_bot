@@ -1,5 +1,5 @@
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from app.bot.handlers.keyboards.service import get_news_sources
 from app.logging import logger
@@ -8,6 +8,7 @@ from app.logging import logger
 async def news_source_keyboard() -> InlineKeyboardMarkup:
     """
     Получает из базы варианты подписок и создает клавиатуру с вариантами подписок.
+
     :return: Инлайн клавиатуру с вариантами подписок.
     """
     await logger.debug('Генерация клавиатуры подписок - сайты')
@@ -23,6 +24,7 @@ async def news_source_keyboard() -> InlineKeyboardMarkup:
 async def news_category_keyboard() -> InlineKeyboardMarkup:
     """
     Получает из базы варианты подписок и создает клавиатуру с вариантами подписок.
+
     :return: Инлайн клавиатуру с вариантами подписок.
     """
     await logger.debug('Генерация клавиатуры подписок - категории')

@@ -1,30 +1,32 @@
 import asyncio
 from datetime import datetime
-
-from sqlalchemy.orm import joinedload
-
-import app.parsers
 from typing import Type
 
 import fake_useragent
+from sqlalchemy.orm import joinedload
 
+import app.parsers
 from app.config.constants import MAX_SELENIUM_TASKS
 from app.db.models import Resource
-from app.db.models.news_feed import RemoteCategory, News
-from app.db.repo import get_resources_for_update_repo, get_resource_timeout_repo, get_categories_timeout_repo, \
-    get_categories_for_update_repo
+from app.db.models.news_feed import RemoteCategory
+from app.db.repo import (
+    get_categories_for_update_repo,
+    get_categories_timeout_repo,
+    get_resource_timeout_repo,
+    get_resources_for_update_repo,
+)
 from app.db.session import session_scope
 from app.logging import logger
-from app.parsers.base import BaseParser, AsyncSeleniumParser
+from app.parsers.base import AsyncSeleniumParser, BaseParser
 from app.queue import get_task_from_parse_queue
 
-
-
 selenium_semaphore = asyncio.Semaphore(MAX_SELENIUM_TASKS)
+
 
 def get_parser(parser_name: str) -> Type[BaseParser]:
     """
     Получает класс парсера по названию.
+
     :param parser_name: Название класса парсера.
     :return: Класс парсера по названию.
     """
@@ -82,6 +84,7 @@ async def parse_categories_loop() -> None:
 async def create_parse_task(url: str, parser_class: Type[BaseParser]) -> None:
     """
     Создает асинхронную таску парсинга новости.
+
     :param url: Ссылка которую необходимо спарсить.
     :param parser_class: Класс парсера.
     """
@@ -101,6 +104,7 @@ async def parse_queue_loop() -> None:
 async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:
     """
     Обработчик задачи парсинга.
+
     :param parser_class: Класс парсера для обработки url.
     :param url: Ссылка которую необходимо спарсить.
 
@@ -110,6 +114,7 @@ async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:
     try:
         parse = parser_class(url, fake_useragent.UserAgent(browsers='chrome', platforms='pc').random)
         await parse.fetch_data()
+        await asyncio.sleep(0)
         parse.parse()
         await parse.proces_data()
     finally:

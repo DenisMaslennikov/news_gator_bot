@@ -1,14 +1,23 @@
 from sqlalchemy.orm import subqueryload
 
-from app.db.repo import register_user_repo, get_user_repo, delete_all_user_subscriptions_repo, \
-    delete_user_repo, get_subscription_repo, subscribe_user_repo, delete_subscription_repo, get_news_resource_repo
-from app.db.models import User, Resource
+from app.db.models import Resource, User
+from app.db.repo import (
+    delete_all_user_subscriptions_repo,
+    delete_subscription_repo,
+    delete_user_repo,
+    get_news_resource_repo,
+    get_subscription_repo,
+    get_user_repo,
+    register_user_repo,
+    subscribe_user_repo,
+)
 from app.db.session import session_scope
 
 
 async def register_user(user_id: int) -> bool:
     """
     Регистрация пользователя.
+
     :param user_id: Идентификатор пользователя.
     :return: Строка со статусом регистрации.
     """
@@ -19,6 +28,7 @@ async def register_user(user_id: int) -> bool:
 async def delete_user(user_id: int) -> bool:
     """
     Регистрация пользователя.
+
     :param user_id: Идентификатор пользователя.
     :return: True если пользователь удален и False если пользователь не найден.
     """
@@ -34,6 +44,7 @@ async def delete_user(user_id: int) -> bool:
 async def get_user(user_id: int) -> User | None:
     """
     Получение информации о регистрации пользователя.
+
     :param user_id: Идентификатор пользователя
     """
     async with session_scope() as session:
@@ -43,6 +54,7 @@ async def get_user(user_id: int) -> User | None:
 async def subscription_status(user_id: int, resource_id: str) -> bool:
     """
     Проверяет наличие подписки у пользователя на ресурс.
+
     :param user_id: Идентификатор пользователя.
     :param resource_id: Идентификатор ресурса.
     :return: True если такая подписка есть False если подписки нет.
@@ -54,6 +66,7 @@ async def subscription_status(user_id: int, resource_id: str) -> bool:
 async def subscribe_user(user_id: int, resource_id: str) -> None:
     """
     Подписывает пользователя на ресурс.
+
     :param user_id: Идентификатор пользователя.
     :param resource_id: Идентификатор ресурса.
     """
@@ -64,6 +77,7 @@ async def subscribe_user(user_id: int, resource_id: str) -> None:
 async def unsubscribe_user(user_id: int, resource_id: str) -> None:
     """
     Отменяет подписку пользователя на ресурс.
+
     :param user_id: Идентификатор пользователя.
     :param resource_id: Идентификатор ресурса.
     """
@@ -74,7 +88,8 @@ async def unsubscribe_user(user_id: int, resource_id: str) -> None:
 
 async def get_news_source(resource_id: str) -> Resource:
     """
-    Получение новостного ресурса по id/
+    Получение новостного ресурса по id.
+
     :param resource_id: Идентификатор новостного ресурса.
     :return: Объект Resource.
     """
