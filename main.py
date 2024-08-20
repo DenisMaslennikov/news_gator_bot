@@ -9,14 +9,10 @@ async def main():
     """Основная функция запускающая все процессы."""
     try:
         tasks = []
-        task = asyncio.create_task(parse_queue_loop())
-        tasks.append(task)
-        task = asyncio.create_task(parse_resources_loop())
-        tasks.append(task)
-        task = asyncio.create_task(parse_categories_loop())
-        tasks.append(task)
-        task = asyncio.create_task(dp.start_polling(bot))
-        tasks.append(task)
+        tasks.append(asyncio.create_task(parse_queue_loop()))
+        tasks.append(asyncio.create_task(parse_resources_loop()))
+        tasks.append(asyncio.create_task(parse_categories_loop()))
+        tasks.append(asyncio.create_task(dp.start_polling(bot)))
         await asyncio.gather(*tasks)
     except Exception as e:
         logger.exception(e)
