@@ -103,14 +103,16 @@ async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:
     Обработчик задачи парсинга.
     :param parser_class: Класс парсера для обработки url.
     :param url: Ссылка которую необходимо спарсить.
+
     """
+    if issubclass(parser_class, AsyncSeleniumParser):
+        await selenium_semaphore.acquire()
     try:
-        if issubclass(parser_class, AsyncSeleniumParser):
-            await selenium_semaphore.acquire()
         parse = parser_class(url, fake_useragent.UserAgent(browsers='chrome', platforms='pc').random)
         await parse.fetch_data()
         parse.parse()
         await parse.proces_data()
     finally:
         if issubclass(parser_class, AsyncSeleniumParser):
+            parse.close()
             selenium_semaphore.release()

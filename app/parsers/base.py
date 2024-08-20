@@ -25,7 +25,6 @@ class BaseParser(ABC):
         logger.debug('Вызван базовый конструктор парсера.')
         self.url = url
         self.user_agent = user_agent
-        # self.extra_data = kwargs
 
     # @abstractmethod
     # async def __aenter__(self) -> AsyncContextManager:
@@ -105,3 +104,9 @@ class AsyncSeleniumParser(BaseParser):
         loop = asyncio.get_running_loop()
         # Выполняем блокирующую операцию в отдельном потоке
         await loop.run_in_executor(self._executor, self._fetch_data)
+
+    def close(self):
+        """Закрывает все окна браузера."""
+        logger.debug(f'Закрываем браузер {self.url}')
+        self._driver.close()
+        self._driver.quit()
