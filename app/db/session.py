@@ -26,4 +26,6 @@ async def session_scope() -> AsyncSession:
             raise e
         else:
             await sess.commit()
+        finally:
+            await sess.close()
 

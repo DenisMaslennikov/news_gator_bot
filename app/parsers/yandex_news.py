@@ -108,8 +108,9 @@ class YandexNewsCategoryBaseParser(AsyncSeleniumParser):
                             detected_at=datetime.datetime.now(),
                         )
                         news_list.append(news)
+                        await session.flush()
+                    await add_remote_category_to_news_repo(session, remote_category.id, news.id)
         for news in news_list:
-            await add_remote_category_to_news_repo(session, remote_category.id, news.id)
             await add_task_to_parse_queue(news.news_url, YandexNewsDetailParser)
 
 

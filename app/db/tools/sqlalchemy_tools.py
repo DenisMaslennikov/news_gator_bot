@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import class_mapper, joinedload
 from sqlalchemy.orm.strategy_options import _AbstractLoad
 
+from app.db.models import NewsRemoteCategory
 from app.db.models.base import Base
 
 
@@ -20,14 +21,11 @@ async def get_or_create(session: AsyncSession, model: Type[Base], **kwargs) -> T
     stmt = select(model).filter_by(**kwargs)
     result = await session.execute(stmt)
     instance = result.scalars().first()
-
     if instance:
         return instance, False
     else:
         instance = model(**kwargs)
         session.add(instance)
-        await session.flush()
-
         return instance, True
 
 
