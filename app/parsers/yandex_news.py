@@ -92,7 +92,7 @@ class YandexNewsCategoryBaseParser(AsyncSeleniumParser):
 
     async def proces_data(self) -> None:
         """Сохранение спаршенных данных о новостях."""
-        logger.debug(f'Сохраняем спарсенные c {self.url} данные')
+        await logger.debug(f'Сохраняем спарсенные c {self.url} данные')
         news_list = []
         async with self.lock:
             async with session_scope() as session:
