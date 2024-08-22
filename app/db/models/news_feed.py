@@ -91,7 +91,7 @@ class News(Base):
         'RemoteCategory', back_populates='news', secondary=NewsRemoteCategory.__table__,
     )
     images = relationship('Image', back_populates='news')
-    news_send = relationship('NewsSend', back_populates='news')
+    news_sent = relationship('NewsSent', back_populates='news')
 
 
 class Image(Base):
