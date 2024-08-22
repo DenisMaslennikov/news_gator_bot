@@ -24,7 +24,7 @@ class User(Base):
 
     user_subscriptions = relationship('UserSubscription', back_populates='user')
     roles = relationship('Role', back_populates='users', secondary=UserRole.__table__)
-    news_send = relationship('NewsSend', back_populates='user')
+    news_sent = relationship('NewsSent', back_populates='user')
 
 
 class NewsSent(Base):
