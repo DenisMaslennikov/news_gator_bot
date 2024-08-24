@@ -337,7 +337,7 @@ async def get_news_for_send_repo(session: AsyncSession) -> Sequence[Row]:
                   & (NewsSent.user_id == User.user_id),
     ).where(
         NewsSent.id.is_(None),
-        News.detected_at > datetime.now() - timedelta(seconds=NEWS_ACTUAL_TIME),
+        News.parsed_at > datetime.now() - timedelta(seconds=NEWS_ACTUAL_TIME),
         News.content.isnot(None)
     )
     result = await session.execute(stmt)

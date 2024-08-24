@@ -1,8 +1,5 @@
 venv
-django
-nginx
 test
-docker-compose.yml
 __pycache__
 .idea
 

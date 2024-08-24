@@ -86,6 +86,7 @@ class News(Base):
     published_at = Column(DateTime, nullable=True, comment='Дата публикации')
     detected_at = Column(DateTime, nullable=False, comment='Дата добавления в базу')
     author = Column(Text, comment='Информация об авторе')
+    parsed_at = Column(DateTime, nullable=True, comment='Дата когда новость была полностью спашена')
 
     remote_categories = relationship(
         'RemoteCategory', back_populates='news', secondary=NewsRemoteCategory.__table__,

@@ -115,7 +115,8 @@ async def subscriptions_callback_handler(callback: types.CallbackQuery, state: F
     await logger.debug(f'Управление подпиской на {callback.data}')
     resource_id = callback.data
     resource = await get_news_source(resource_id)
-    response = f'Управление подпиской на {resource.title}.\n({resource.comment})'
+    response = (
+        f'Управление подпиской на {resource.title}.\n({resource.comment if resource.comment is not None else ""})')
 
     await callback.answer(response)
 

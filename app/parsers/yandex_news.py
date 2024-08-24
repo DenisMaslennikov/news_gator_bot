@@ -82,6 +82,7 @@ class YandexNewsDetailParser(AsyncSeleniumParser):
             async with session_scope() as session:
                 news = await get_news_by_url_repo(session, self.url)
                 news.content = self.content
+                news.parsed_at = datetime.datetime.now()
         else:
             await logger.debug(f'Контент не получен нечего сохранять в бд {self.url}')
 
