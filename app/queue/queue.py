@@ -2,9 +2,7 @@ import asyncio
 import datetime
 import uuid
 from collections import namedtuple
-from typing import Dict, Type, Union
-
-from app.parsers import BaseParser
+from typing import Type
 
 _parsing_queue = asyncio.Queue()
 _message_queue = asyncio.Queue()
@@ -16,7 +14,7 @@ MessageTask = namedtuple('MessageTask', [
 ParsingTask = namedtuple('ParsingTask', ['url', 'parser_class'])
 
 
-async def add_task_to_parse_queue(url: str, parser_class: Type[BaseParser]) -> None:
+async def add_task_to_parse_queue(url: str, parser_class) -> None:
     """
     Добавляет страницу и класс парсера в очередь парсинга.
 
