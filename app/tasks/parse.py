@@ -97,8 +97,8 @@ async def parse_queue_loop() -> None:
     while True:
         await logger.debug('Жду задачу парсинга')
         task = await get_task_from_parse_queue()
-        await logger.debug(f'создаю таску для парсинга по адресу {task["url"]}')
-        await create_parse_task(task['url'], task['parser_class'])
+        await logger.debug(f'создаю таску для парсинга по адресу {task.url}')
+        await create_parse_task(task.url, task.parser_class)
 
 
 async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:

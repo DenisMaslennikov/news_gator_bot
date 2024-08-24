@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import class_mapper, joinedload
 from sqlalchemy.orm.strategy_options import _AbstractLoad
 
-from app.db.models import NewsRemoteCategory
 from app.db.models.base import Base
 
 

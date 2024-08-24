@@ -3,13 +3,13 @@ from aiologger.formatters.base import Formatter
 from aiologger.handlers.files import AsyncFileHandler
 from aiologger.handlers.streams import AsyncStreamHandler
 
-from app.config.constants import FILE_LOG_LEVEL, LOG_FILE, LOG_FORMAT
+from app.config.constants import CONSOLE_LOG_LEVEL, FILE_LOG_LEVEL, LOG_FILE, LOG_FORMAT
 from config import settings
 
 formatter = Formatter(fmt=LOG_FORMAT)
 
 # Создаем асинхронный обработчик для консольного вывода
-console_handler = AsyncStreamHandler(level='DEBUG', formatter=formatter)
+console_handler = AsyncStreamHandler(level=CONSOLE_LOG_LEVEL, formatter=formatter)
 
 # Создаем асинхронный обработчик для записи в файл
 file_handler = AsyncFileHandler(filename=settings.base_dir / LOG_FILE, mode='a', encoding='utf-8')

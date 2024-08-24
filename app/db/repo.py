@@ -2,10 +2,12 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Sequence
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import Row, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config.constants import NEWS_ACTUAL_TIME
 from app.db.models import Category, Resource, User, UserSubscription
+from app.db.models.bot import NewsSent
 from app.db.models.news_feed import News, NewsRemoteCategory, RemoteCategory
 from app.db.tools.sqlalchemy_tools import get_or_create, joinedload_all_relationships
 from app.logging import logger
@@ -301,3 +303,42 @@ async def add_remote_category_to_news_repo(
     :param news_id: Идентификатор новости
     """
     await get_or_create(session, NewsRemoteCategory, remote_category_id=remote_category_id, news_id=news_id)
+
+
+async def get_news_for_send_repo(session: AsyncSession) -> Sequence[Row]:
+    """
+    Получает новости для отправки подписчикам.
+
+    :param session:
+    :return: Список объектов Row (user_id, news_title, news_content, news_date, news_id, news_url)
+    """
+    stmt = select(
+        User.user_id.label('user_id'),
+        News.title.label('news_title'),
+        News.content.label('news_content'),
+        func.coalesce(News.published_at, News.detected_at).label('news_date'),
+        News.id.label('news_id'),
+        News.news_url.label('news_url'),
+    ).select_from(User).distinct().join(
+        UserSubscription, UserSubscription.user_id == User.user_id,
+    ).join(
+        Category, Category.id == UserSubscription.category_id,
+    ).join(
+        Resource, Resource.id == UserSubscription.resource_id,
+    ).join(
+        RemoteCategory, (RemoteCategory.category_id == Category.id)
+                        & (RemoteCategory.news_resource_id == Resource.id),
+    ).join(
+        NewsRemoteCategory, NewsRemoteCategory.remote_category_id == RemoteCategory.id,
+    ).join(
+        News, News.id == NewsRemoteCategory.news_id,
+    ).outerjoin(
+        NewsSent, (NewsSent.news_id == News.id)
+                  & (NewsSent.user_id == User.user_id),
+    ).where(
+        NewsSent.id.is_(None),
+        News.detected_at > datetime.now() - timedelta(seconds=NEWS_ACTUAL_TIME),
+        News.content.isnot(None)
+    )
+    result = await session.execute(stmt)
+    return result.all()

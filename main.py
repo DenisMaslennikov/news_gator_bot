@@ -3,12 +3,14 @@ from multiprocessing import Process
 
 from app.bot import bot, dp
 from app.logging import logger
+from app.tasks.messages import messages_polling_loop
 from app.tasks.parse import parse_categories_loop, parse_queue_loop, parse_resources_loop
 
 
 def run_polling(bot) -> None:
     """Функция для запуска polling в отдельном процессе."""
     asyncio.run(dp.run_polling(bot))
+
 
 async def main():
     """Основная функция запускающая все процессы."""
@@ -20,6 +22,7 @@ async def main():
         tasks.append(asyncio.create_task(parse_queue_loop()))
         tasks.append(asyncio.create_task(parse_resources_loop()))
         tasks.append(asyncio.create_task(parse_categories_loop()))
+        tasks.append(asyncio.create_task(messages_polling_loop(bot)))
         await asyncio.gather(*tasks)
     except Exception as e:
         logger.exception(e)

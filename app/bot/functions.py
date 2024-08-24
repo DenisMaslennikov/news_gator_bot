@@ -1,9 +1,10 @@
-from app.bot import bot
+import aiogram
+
 from app.logging import logger
 
 
 # Функция для отправки сообщения пользователю
-async def send_message_to_user(user_id: int, text: str) -> None:
+async def send_message_to_user(bot: aiogram.Bot, user_id: int, text: str) -> None:
     """
     Отправить сообщение пользователю.
 

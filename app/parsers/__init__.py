@@ -4,5 +4,6 @@ from .yandex_news import YandexNewsCategoryParser, YandexNewsCategoryWithSubCate
 __all__ = [
     'YandexNewsMainPageParser',
     'YandexNewsCategoryParser',
-    'YandexNewsCategoryWithSubCategoriesParser', 'BaseParser',
+    'YandexNewsCategoryWithSubCategoriesParser',
+    'BaseParser',
 ]

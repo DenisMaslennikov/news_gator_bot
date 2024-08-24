@@ -1,3 +1,5 @@
-INSERT INTO cl_parsers (name, parser_class)
+INSERT INTO cl_parsers (id, name, parser_class)
 VALUES
-  ('Категории яндекс новостей', 'YandexNewsMainPageParser');
+  (1, 'Категории яндекс новостей', 'YandexNewsMainPageParser'),
+  (2, 'Новости без подкатегорий', 'YandexNewsCategoryParser'),
+  (3, 'Новости с подкатегориями', 'YandexNewsCategoryWithSubCategoriesParser');

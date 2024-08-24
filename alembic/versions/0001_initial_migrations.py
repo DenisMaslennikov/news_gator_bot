@@ -2,7 +2,7 @@
 
 Revision ID: 0001
 Revises: 
-Create Date: 2024-08-14 18:30:57.582798
+Create Date: 2024-08-24 13:44:12.904515
 
 """
 from typing import Sequence, Union
@@ -54,15 +54,24 @@ def upgrade() -> None:
     op.create_table('nf_news',
     sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False, comment='Идентификатор новости'),
     sa.Column('title', sa.Text(), nullable=False, comment='Заголовок новости'),
-    sa.Column('description', sa.Text(), nullable=False, comment='Краткий анонс новости'),
+    sa.Column('description', sa.Text(), nullable=True, comment='Краткий анонс новости'),
     sa.Column('content', sa.Text(), nullable=True, comment='Текст новости'),
     sa.Column('news_url', sa.Text(), nullable=False, comment='Ссылка на новость'),
-    sa.Column('published_at', sa.DateTime(), nullable=False, comment='Дата публикации'),
+    sa.Column('published_at', sa.DateTime(), nullable=True, comment='Дата публикации'),
     sa.Column('detected_at', sa.DateTime(), nullable=False, comment='Дата добавления в базу'),
     sa.Column('author', sa.Text(), nullable=True, comment='Информация об авторе'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('news_url'),
     comment='Новости.'
+    )
+    op.create_table('bot_news_sent',
+    sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False, comment='Идентификатор'),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('news_id', sa.Uuid(), nullable=False),
+    sa.ForeignKeyConstraint(['news_id'], ['nf_news.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['bot_users.user_id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    comment='Информация об отправленных новостях.'
     )
     op.create_table('bot_user_roles',
     sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False, comment='Идентификатор'),
@@ -93,6 +102,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['parser_id'], ['cl_parsers.id'], ),
     sa.ForeignKeyConstraint(['source_type_id'], ['cl_resource_type.id'], ondelete='RESTRICT'),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('url'),
     comment='Источники новостей.'
     )
     op.create_table('nf_remote_categories',
@@ -110,7 +120,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['news_resource_id'], ['nf_resources.id'], ),
     sa.ForeignKeyConstraint(['parser_id'], ['cl_parsers.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('url'),
     comment='Категории новостей на новостном ресурсе.'
     )
     op.create_table('nf_user_subscription',
@@ -144,6 +153,7 @@ def downgrade() -> None:
     op.drop_table('nf_resources')
     op.drop_table('nf_images')
     op.drop_table('bot_user_roles')
+    op.drop_table('bot_news_sent')
     op.drop_table('nf_news')
     op.drop_table('cl_roles')
     op.drop_table('cl_resource_type')

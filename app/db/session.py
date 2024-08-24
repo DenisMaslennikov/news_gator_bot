@@ -10,6 +10,7 @@ from config import settings
 engine = create_async_engine(settings.async_database_uri)
 async_session_factory = async_sessionmaker(bind=engine, expire_on_commit=False)
 
+
 @contextlib.asynccontextmanager
 async def session_scope() -> AsyncSession:
     """Создание контекстного менеджера сессии и оборачивание её в транзакцию."""
@@ -28,4 +29,3 @@ async def session_scope() -> AsyncSession:
             await sess.commit()
         finally:
             await sess.close()
-
