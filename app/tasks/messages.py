@@ -19,7 +19,7 @@ async def messages_polling_loop(bot: aiogram.Bot) -> None:
         await asyncio.sleep(MESSAGE_POLING_INTERVAL)
         async with session_scope() as session:
             message_tasks = await get_news_for_send_repo(session)
-            await logger.debug(f'Получено {len(message_tasks)} новостей для отправки')
+            await logger.warning(f'Получено {len(message_tasks)} новостей для отправки')
             for task in message_tasks:
                 await add_task_to_message_queue(
                     user_id=task.user_id,
@@ -29,3 +29,6 @@ async def messages_polling_loop(bot: aiogram.Bot) -> None:
                     news_url=task.news_url,
                     news_date=task.news_date,
                 )
+
+
+

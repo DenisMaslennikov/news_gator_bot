@@ -2,7 +2,8 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Sequence
 
-from sqlalchemy import Row, func, or_, select
+from sqlalchemy import Row, func, or_, select, insert
+from sqlalchemy.engine import row
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config.constants import NEWS_ACTUAL_TIME
@@ -341,4 +342,13 @@ async def get_news_for_send_repo(session: AsyncSession) -> Sequence[Row]:
         News.content.isnot(None)
     )
     result = await session.execute(stmt)
-    return result.all()
+    news_tasks = result.all()
+
+    # news_sent = [NewsSent(user_id=row.user_id, news_id=row.news_id) for row in response]
+    # session.add_all(news_sent)
+
+    news_sent = [{'user_id': task.user_id, 'news_id': task.news_id} for task in news_tasks]
+    insert_stmt = insert(NewsSent).values(*news_sent)
+    await session.execute(insert_stmt)
+    return news_tasks
+
