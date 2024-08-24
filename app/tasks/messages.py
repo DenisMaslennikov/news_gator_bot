@@ -36,6 +36,9 @@ async def send_message_loop(bot: Bot) -> None:
     """
     while True:
         task = await get_task_from_message_queue()
-        message = (f'<b>{task.news_title}</b>\n{task.news_date.strftime("%d.%m.%Y %H:%M")}\n{task.news_content}\n<a href="{task.news_url}">Источник</a>')
+        message = (
+            f'<b>{task.news_title}</b>\n{task.news_date.strftime("%d.%m.%Y %H:%M")}\n{task.news_content}\n<a href='
+            f'"{task.news_url}">Источник</a>'
+        )
         loop = asyncio.get_running_loop()
         loop.create_task(send_message_to_user(bot, task.user_id, message))
