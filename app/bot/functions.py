@@ -1,4 +1,5 @@
 import aiogram
+from aiogram.enums import ParseMode
 
 from app.logging import logger
 
@@ -12,4 +13,4 @@ async def send_message_to_user(bot: aiogram.Bot, user_id: int, text: str) -> Non
     :param text: Текст сообщения.
     """
     await logger.debug(f'Отправка сообщения в чат "{user_id}"')
-    await bot.send_message(chat_id=user_id, text=text)
+    await bot.send_message(chat_id=user_id, text=text, parse_mode=ParseMode.HTML)
