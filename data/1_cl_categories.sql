@@ -1,18 +1,15 @@
-INSERT INTO cl_categories (name)
-VALUES
-  ('Олимпиада'),
-  ('Интересное'),
-  ('Политика'),
-  ('Общество'),
-  ('Экономика'),
-  ('СВО'),
-  ('В мире'),
-  ('Спорт'),
-  ('Шоу-бизнес'),
-  ('Происшествия'),
-  ('Культура'),
-  ('Технологии'),
-  ('Наука'),
-  ('Авто'),
-  ('Москва');
-
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (2, 'Интересное', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (3, 'Политика', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (4, 'Общество', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (5, 'Экономика', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (6, 'СВО', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (7, 'В мире', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (8, 'Спорт', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (9, 'Шоу-бизнес', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (10, 'Происшествия', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (11, 'Культура', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (12, 'Технологии', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (13, 'Наука', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (14, 'Авто', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (15, 'Москва', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (1, 'Олимпиада', '2024-08-24 22:49:39');

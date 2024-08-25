@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from app.bot.handlers.keyboards.service import get_news_sources, get_categories_for_resources
+from app.bot.handlers.keyboards.service import get_categories_for_resources, get_news_sources
 from app.logging import logger
 
 

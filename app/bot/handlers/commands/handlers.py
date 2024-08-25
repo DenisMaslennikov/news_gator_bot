@@ -4,16 +4,21 @@ from aiogram.fsm.context import FSMContext
 
 from app.bot.handlers.commands.service import (
     delete_user,
+    get_category_by_id,
     get_news_source,
     get_user,
     register_user,
     subscribe_user,
     subscription_status,
-    unsubscribe_user, get_category_by_id,
+    unsubscribe_user,
 )
 from app.bot.handlers.commands.states import SubscriptionsController, UnregisterConfirm
-from app.bot.handlers.keyboards.keyboards import news_source_keyboard, subscribe_keyboard, unsubscribe_keyboard, \
-    news_category_keyboard
+from app.bot.handlers.keyboards.keyboards import (
+    news_category_keyboard,
+    news_source_keyboard,
+    subscribe_keyboard,
+    unsubscribe_keyboard,
+)
 from app.logging import logger
 
 command_router = Router()

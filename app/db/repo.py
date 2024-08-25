@@ -175,7 +175,8 @@ async def get_resources_for_update_repo(session: AsyncSession, *options) -> Sequ
         or_(
             Resource.update_datetime + Resource.update_interval < datetime.now(),
             Resource.update_datetime.is_(None),
-        )
+        ),
+        Resource.parser_id.isnot(None),
     )
     if options:
         stmt = stmt.options(*options)
@@ -192,7 +193,7 @@ async def get_resource_timeout_repo(session: AsyncSession) -> timedelta:
     """
     stmt = select(
         func.min(func.coalesce((Resource.update_datetime + Resource.update_interval), datetime.now())) - datetime.now()
-    )
+    ).filter(Resource.parser_id.isnot(None))
     result = await session.execute(stmt)
     return result.scalar()
 
@@ -283,7 +284,7 @@ async def create_news_repo(session: AsyncSession, **kwargs) -> News:
     return news
 
 
-async def get_remote_category_by_url_repo(session: AsyncSession, url: str) -> RemoteCategory:
+async def get_remote_category_by_url_repo(session: AsyncSession, url: str, *options) -> RemoteCategory:
     """
     Получает удаленную категорию по адресу ссылки.
 
@@ -292,6 +293,8 @@ async def get_remote_category_by_url_repo(session: AsyncSession, url: str) -> Re
     :return: Объект RemoteCategory.
     """
     stmt = select(RemoteCategory).where(RemoteCategory.url == url)
+    if options:
+        stmt = stmt.options(*options)
     result = await session.execute(stmt)
     return result.scalars().first()
 

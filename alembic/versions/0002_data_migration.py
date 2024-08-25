@@ -24,9 +24,11 @@ def upgrade() -> None:
     files_for_import = [
         # Классификаторы
         '1_cl_categories.sql',
+        '1_cl_parsers_types.sql',
         '1_cl_resource_type.sql',
-        '1_cl_parsers.sql',
         '1_cl_roles.sql',
+        # Зависимые классификаторы
+        '2_cl_parsers.sql',
     ]
     for file_name in files_for_import:
         with open(os.path.join('data', file_name), 'r') as file:

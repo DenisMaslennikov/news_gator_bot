@@ -2,7 +2,9 @@ import asyncio
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 
+import aiohttp
 from selenium import webdriver
+from selenium.common import WebDriverException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
@@ -51,8 +53,12 @@ class BaseParser(ABC):
         """Метод для обработки данных например записи в БД."""
         pass
 
+    def __str__(self):
+        """Строковое представление парсера."""
+        return self.url
 
-class AsyncSeleniumParser(BaseParser):
+
+class ThreadSeleniumParser(BaseParser):
     """Класс для работы с selenium."""
 
     def __init__(self, url: str, user_agent: str) -> None:
@@ -97,11 +103,14 @@ class AsyncSeleniumParser(BaseParser):
 
     def _fetch_data(self) -> None:
         """Функция для выполнения блокирующих операций Selenium."""
-        self._driver.get(self.url)
+        try:
+            self._driver.get(self.url)
+        except WebDriverException:
+            logger.warning(f'Не удалось получить страницу по адресу {self.url}')
 
     async def fetch_data(self) -> None:
-        """Асинхронный метод для получения данных."""
-        await logger.debug(f'Получаю страницу {self.url}')
+        """Асинхронный метод для получения данных со страницы."""
+        await logger.debug(f'Получаю страницу {self.url} с помощью selenium')
         loop = asyncio.get_running_loop()
         # Выполняем блокирующую операцию в отдельном потоке
         await loop.run_in_executor(self._executor, self._fetch_data)
@@ -111,3 +120,18 @@ class AsyncSeleniumParser(BaseParser):
         logger.debug(f'Закрываем браузер {self.url}')
         self._driver.close()
         self._driver.quit()
+
+
+class aiohttpParser(BaseParser):
+    """Класс для работы с aiohttp."""
+
+    async def fetch_data(self) -> None:
+        """Получение данных со страницы."""
+        await logger.debug(f'Получаю страницу {self.url} с помощью aiohttp')
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(self.url) as response:
+                    response.raise_for_status()
+                    self._data = await response.text()
+        except aiohttp.ClientError:
+            logger.warning(f'Не удалось получить страницу по адресу {self.url}')

@@ -11,4 +11,3 @@ class SubscriptionsController(StatesGroup):
     select_subscription = State()
     update_subscription = State()
     select_category = State()
-

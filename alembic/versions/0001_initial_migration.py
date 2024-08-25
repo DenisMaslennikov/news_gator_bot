@@ -1,8 +1,8 @@
-"""initial_migrations
+"""initial_migration
 
 Revision ID: 0001
 Revises: 
-Create Date: 2024-08-24 13:44:12.904515
+Create Date: 2024-08-25 14:09:10.934577
 
 """
 from typing import Sequence, Union
@@ -32,10 +32,9 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     comment='Категории для новостей.'
     )
-    op.create_table('cl_parsers',
-    sa.Column('id', sa.Integer(), nullable=False, comment='Идентификатор парсера'),
-    sa.Column('name', sa.String(length=120), nullable=True, comment='Название парсера'),
-    sa.Column('parser_class', sa.String(length=120), nullable=True, comment='Класс парсера'),
+    op.create_table('cl_parsers_types',
+    sa.Column('id', sa.Integer(), nullable=False, comment='Идентификатор типа парсера'),
+    sa.Column('name', sa.String(length=120), nullable=True, comment='Тип парсера'),
     sa.PrimaryKeyConstraint('id'),
     comment='Модель содержащая класс и имя парсера.'
     )
@@ -60,6 +59,7 @@ def upgrade() -> None:
     sa.Column('published_at', sa.DateTime(), nullable=True, comment='Дата публикации'),
     sa.Column('detected_at', sa.DateTime(), nullable=False, comment='Дата добавления в базу'),
     sa.Column('author', sa.Text(), nullable=True, comment='Информация об авторе'),
+    sa.Column('parsed_at', sa.DateTime(), nullable=True, comment='Дата когда новость была полностью спашена'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('news_url'),
     comment='Новости.'
@@ -82,6 +82,15 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     comment='Роли пользователя.'
     )
+    op.create_table('cl_parsers',
+    sa.Column('id', sa.Integer(), nullable=False, comment='Идентификатор парсера'),
+    sa.Column('name', sa.String(length=120), nullable=True, comment='Название парсера'),
+    sa.Column('parser_class', sa.String(length=120), nullable=True, comment='Класс парсера'),
+    sa.Column('parser_type_id', sa.Integer(), nullable=False, comment='Идентификатор типа парсера'),
+    sa.ForeignKeyConstraint(['parser_type_id'], ['cl_parsers_types.id'], ondelete='RESTRICT'),
+    sa.PrimaryKeyConstraint('id'),
+    comment='Модель содержащая класс и имя парсера.'
+    )
     op.create_table('nf_images',
     sa.Column('id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('file_name', sa.String(), nullable=False),
@@ -97,9 +106,11 @@ def upgrade() -> None:
     sa.Column('update_datetime', sa.DateTime(), nullable=True, comment='Дата и время последнего обновления'),
     sa.Column('title', sa.String(length=255), nullable=False, comment='Название новостного ресурса'),
     sa.Column('comment', sa.Text(), nullable=True, comment='Комментарий'),
-    sa.Column('parser_id', sa.Integer(), nullable=False, comment='Идентификатор парсера'),
+    sa.Column('parser_id', sa.Integer(), nullable=True, comment='Идентификатор парсера'),
+    sa.Column('parser_detail_id', sa.Integer(), nullable=False, comment='Идентификатор парсера для получения контента новости'),
     sa.Column('source_type_id', sa.SmallInteger(), nullable=False, comment='Идентификатор типа новостного ресурса'),
-    sa.ForeignKeyConstraint(['parser_id'], ['cl_parsers.id'], ),
+    sa.ForeignKeyConstraint(['parser_detail_id'], ['cl_parsers.id'], ondelete='RESTRICT'),
+    sa.ForeignKeyConstraint(['parser_id'], ['cl_parsers.id'], ondelete='RESTRICT'),
     sa.ForeignKeyConstraint(['source_type_id'], ['cl_resource_type.id'], ondelete='RESTRICT'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('url'),
@@ -152,12 +163,13 @@ def downgrade() -> None:
     op.drop_table('nf_remote_categories')
     op.drop_table('nf_resources')
     op.drop_table('nf_images')
+    op.drop_table('cl_parsers')
     op.drop_table('bot_user_roles')
     op.drop_table('bot_news_sent')
     op.drop_table('nf_news')
     op.drop_table('cl_roles')
     op.drop_table('cl_resource_type')
-    op.drop_table('cl_parsers')
+    op.drop_table('cl_parsers_types')
     op.drop_table('cl_categories')
     op.drop_table('bot_users')
     # ### end Alembic commands ###

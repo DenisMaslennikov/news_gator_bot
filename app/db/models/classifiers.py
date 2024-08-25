@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, SmallInteger, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, SmallInteger, String
 from sqlalchemy.orm import relationship
 
 from app.db.models import UserRole
@@ -44,6 +44,23 @@ class Parser(Base):
     id = Column(Integer, primary_key=True, comment='Идентификатор парсера')
     name = Column(String(120), comment='Название парсера')
     parser_class = Column(String(120), comment='Класс парсера')
+    parser_type_id = Column(
+        Integer,
+        ForeignKey('cl_parsers_types.id', ondelete='RESTRICT'),
+        nullable=False,
+        comment='Идентификатор типа парсера',
+    )
 
-    resources = relationship('Resource', back_populates='parser')
+    resources = relationship('Resource', back_populates='parser', foreign_keys='[Resource.parser_id]')
     remote_categories = relationship('RemoteCategory', back_populates='parser')
+    resources_detailed = relationship(
+        'Resource', back_populates='detailed_parser', foreign_keys='[Resource.parser_detail_id]',
+    )
+
+
+class ParserType(Base):
+    """Модель содержащая класс и имя парсера."""
+    __tablename__ = 'cl_parsers_types'
+
+    id = Column(Integer, primary_key=True, comment='Идентификатор типа парсера')
+    name = Column(String(120), comment='Тип парсера')

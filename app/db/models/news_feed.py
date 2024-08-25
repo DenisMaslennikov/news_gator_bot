@@ -19,7 +19,16 @@ class Resource(Base):
     update_datetime = Column(DateTime, nullable=True, comment='Дата и время последнего обновления')
     title = Column(String(255), nullable=False, comment='Название новостного ресурса')
     comment = Column(Text, comment='Комментарий')
-    parser_id = Column(Integer, ForeignKey('cl_parsers.id'), nullable=False, comment='Идентификатор парсера')
+    parser_id = Column(
+        Integer, ForeignKey('cl_parsers.id', ondelete='RESTRICT'), nullable=True, comment='Идентификатор парсера'
+    )
+    parser_detail_id = Column(
+        Integer,
+        ForeignKey('cl_parsers.id', ondelete='RESTRICT'),
+        nullable=False,
+        comment='Идентификатор парсера для получения контента новости',
+
+    )
     source_type_id = Column(
         SmallInteger,
         ForeignKey('cl_resource_type.id', ondelete='RESTRICT'),
@@ -27,7 +36,10 @@ class Resource(Base):
         comment='Идентификатор типа новостного ресурса',
     )
 
-    parser = relationship('Parser', back_populates='resources')
+    parser = relationship('Parser', back_populates='resources', foreign_keys='[Resource.parser_id]')
+    detailed_parser = relationship(
+        'Parser', back_populates='resources_detailed', foreign_keys='[Resource.parser_detail_id]'
+    )
     resource_type = relationship('ResourceType', back_populates='resources')
     remote_categories = relationship('RemoteCategory', back_populates='resource')
     user_subscriptions = relationship('UserSubscription', back_populates='resource')

@@ -1,15 +1,16 @@
 from sqlalchemy.orm import subqueryload
 
-from app.db.models import Resource, User, Category
+from app.db.models import Category, Resource, User
 from app.db.repo import (
     delete_all_user_subscriptions_repo,
     delete_subscription_repo,
     delete_user_repo,
+    get_category_by_id_repo,
     get_news_resource_repo,
     get_subscription_repo,
     get_user_repo,
     register_user_repo,
-    subscribe_user_repo, get_category_by_id_repo,
+    subscribe_user_repo,
 )
 from app.db.session import session_scope
 
