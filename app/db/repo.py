@@ -71,23 +71,27 @@ async def delete_user_repo(session: AsyncSession, user: User) -> None:
         await session.delete(user)
 
 
-async def get_subscription_repo(session: AsyncSession, user_id: int, resource_id: str) -> UserSubscription:
+async def get_subscription_repo(
+    session: AsyncSession, user_id: int, resource_id: str, category_id: str
+) -> UserSubscription:
     """
     Проверяет подписку у пользователя в базе данных.
 
     :param session: Объект сессии SQLAlchemy.
     :param user_id: Идентификатор пользователя.
     :param resource_id: Идентификатор ресурса.
-    :return: True если подписка есть False если подписки нет.
+    :return: Объект подписки.
     """
     stmt = select(UserSubscription).filter(
-        UserSubscription.user_id == user_id, UserSubscription.resource_id == resource_id,
+        UserSubscription.user_id == user_id,
+        UserSubscription.resource_id == resource_id,
+        UserSubscription.category_id == int(category_id),
     )
     result = await session.execute(stmt)
     return result.scalar()
 
 
-async def subscribe_user_repo(session: AsyncSession, user_id: int, resource_id: str) -> None:
+async def subscribe_user_repo(session: AsyncSession, user_id: int, resource_id: str, category_id: str) -> None:
     """
     Подписывает пользователя на ресурс.
 
@@ -95,7 +99,7 @@ async def subscribe_user_repo(session: AsyncSession, user_id: int, resource_id: 
     :param user_id: Идентификатор пользователя.
     :param resource_id: Идентификатор ресурса.
     """
-    user_subscription = UserSubscription(user_id=user_id, resource_id=resource_id)
+    user_subscription = UserSubscription(user_id=user_id, resource_id=resource_id, category_id=int(category_id))
     session.add(user_subscription)
 
 
@@ -351,3 +355,36 @@ async def get_news_for_send_repo(session: AsyncSession) -> Sequence[Row]:
         insert_stmt = insert(NewsSent).values(news_sent)
         await session.execute(insert_stmt)
     return news_tasks
+
+
+async def get_categories_for_resources_repo(session: AsyncSession, resource_id: str) -> Sequence[Category]:
+    """
+    Получение списка доступных категорий для ресурса из базы.
+
+    :param session: Объект сесси SQLAlchemy.
+    :param resource_id: Идентификатор новостного ресурса.
+    """
+    stmt = select(Category).join(
+        RemoteCategory, RemoteCategory.category_id == Category.id,
+    ).where(
+        RemoteCategory.news_resource_id == resource_id,
+        or_(
+            Category.deletion_datetime.is_(None),
+            Category.deletion_datetime > datetime.now()
+        )
+    )
+    result = await session.execute(stmt)
+    return result.scalars().all()
+
+
+async def get_category_by_id_repo(session: AsyncSession, category_id: str) -> Category:
+    """
+    Получение категории из базы данных.
+
+    :param session: Объект сесси SQLAlchemy.
+    :param category_id: Идентификатор категории.
+    :return: Объект Category.
+    """
+    stmt = select(Category).where(Category.id == int(category_id))
+    result = await session.execute(stmt)
+    return result.scalar()

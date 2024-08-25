@@ -10,3 +10,5 @@ class SubscriptionsController(StatesGroup):
     """Контролер состояний управления подписками."""
     select_subscription = State()
     update_subscription = State()
+    select_category = State()
+

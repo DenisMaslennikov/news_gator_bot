@@ -9,10 +9,11 @@ from app.bot.handlers.commands.service import (
     register_user,
     subscribe_user,
     subscription_status,
-    unsubscribe_user,
+    unsubscribe_user, get_category_by_id,
 )
 from app.bot.handlers.commands.states import SubscriptionsController, UnregisterConfirm
-from app.bot.handlers.keyboards.keyboards import news_source_keyboard, subscribe_keyboard, unsubscribe_keyboard
+from app.bot.handlers.keyboards.keyboards import news_source_keyboard, subscribe_keyboard, unsubscribe_keyboard, \
+    news_category_keyboard
 from app.logging import logger
 
 command_router = Router()
@@ -116,20 +117,37 @@ async def subscriptions_callback_handler(callback: types.CallbackQuery, state: F
     resource_id = callback.data
     resource = await get_news_source(resource_id)
     response = (
-        f'Управление подпиской на {resource.title}.\n({resource.comment if resource.comment is not None else ""})')
+        f'Управление подпиской на {resource.title}.\n({resource.comment if resource.comment is not None else ""})\n'
+        f'Доступные категории для подписки:'
+    )
 
     await callback.answer(response)
+    await state.update_data(resource_id=resource_id, resource_name=resource.title)
 
-    await state.update_data(resource_id=resource_id)
+    await callback.message.edit_text(response, reply_markup=await news_category_keyboard(resource_id))
 
-    if await subscription_status(callback.from_user.id, resource_id):
-        await callback.message.edit_text(
-            response, reply_markup=unsubscribe_keyboard
-        )
+    await state.set_state(SubscriptionsController.select_category)
+
+
+@command_router.callback_query(SubscriptionsController.select_category, F.data)
+async def category_callback_handler(callback: types.CallbackQuery, state: FSMContext) -> None:
+    """
+    Управление подпиской на категории доступные для ресурса.
+
+    :param callback: Объект CallbackQuery.
+    :param state: Объект состояния.
+    """
+    category_id = callback.data
+    await state.update_data(category_id=category_id)
+    category = await get_category_by_id(category_id)
+    data = await state.get_data()
+    resource_name = data.pop('resource_name')
+    response = f'Управление подпиской на {resource_name} категорию {category.name}'
+    await callback.answer(response)
+    if await subscription_status(callback.from_user.id, **data):
+        await callback.message.edit_text(response, reply_markup=unsubscribe_keyboard)
     else:
-        await callback.message.edit_text(
-            response, reply_markup=subscribe_keyboard
-        )
+        await callback.message.edit_text(response, reply_markup=subscribe_keyboard)
     await state.set_state(SubscriptionsController.update_subscription)
 
 
@@ -143,6 +161,7 @@ async def update_subscriptions_callback_handler(callback: types.CallbackQuery, s
     """
     await logger.debug(f'Обновление статуса подписки получен статус {callback.data}')
     data = await state.get_data()
+    data.pop('resource_name')
     if callback.data.lower() == 'true':
         await subscribe_user(callback.from_user.id, **data)
         await callback.answer('Вы подписаны')

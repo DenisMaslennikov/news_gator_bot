@@ -1,40 +1,40 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from app.bot.handlers.keyboards.service import get_news_sources
+from app.bot.handlers.keyboards.service import get_news_sources, get_categories_for_resources
 from app.logging import logger
 
 
 async def news_source_keyboard() -> InlineKeyboardMarkup:
     """
-    Получает из базы варианты подписок и создает клавиатуру с вариантами подписок.
+    Получает из базы список ресурсов доступных для подписки.
 
     :return: Инлайн клавиатуру с вариантами подписок.
     """
     await logger.debug('Генерация клавиатуры подписок - сайты')
-    keyword = InlineKeyboardBuilder()
+    keyboard = InlineKeyboardBuilder()
     news_sources = await get_news_sources()
     for news_source in news_sources:
-        keyword.add(
+        keyboard.add(
             InlineKeyboardButton(text=news_source.title, callback_data=str(news_source.id))
         )
-    return keyword.adjust(2).as_markup()
+    return keyboard.adjust(2).as_markup()
 
 
-async def news_category_keyboard() -> InlineKeyboardMarkup:
+async def news_category_keyboard(resource_id) -> InlineKeyboardMarkup:
     """
     Получает из базы варианты подписок и создает клавиатуру с вариантами подписок.
 
     :return: Инлайн клавиатуру с вариантами подписок.
     """
     await logger.debug('Генерация клавиатуры подписок - категории')
-    keyword = InlineKeyboardBuilder()
-    news_sources = await get_news_sources()
-    for news_source in news_sources:
-        keyword.add(
-            InlineKeyboardButton(text=news_source.title, callback_data=str(news_source.id))
+    keyboard = InlineKeyboardBuilder()
+    categories = await get_categories_for_resources(resource_id)
+    for category in categories:
+        keyboard.add(
+            InlineKeyboardButton(text=category.name, callback_data=str(category.id))
         )
-    return keyword.adjust(2).as_markup()
+    return keyboard.adjust(2).as_markup()
 
 
 # Клавиатура отписки

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import subqueryload
 
-from app.db.models import Resource, User
+from app.db.models import Resource, User, Category
 from app.db.repo import (
     delete_all_user_subscriptions_repo,
     delete_subscription_repo,
@@ -9,7 +9,7 @@ from app.db.repo import (
     get_subscription_repo,
     get_user_repo,
     register_user_repo,
-    subscribe_user_repo,
+    subscribe_user_repo, get_category_by_id_repo,
 )
 from app.db.session import session_scope
 
@@ -51,19 +51,20 @@ async def get_user(user_id: int) -> User | None:
         return await get_user_repo(session, user_id)
 
 
-async def subscription_status(user_id: int, resource_id: str) -> bool:
+async def subscription_status(user_id: int, resource_id: str, category_id: str) -> bool:
     """
     Проверяет наличие подписки у пользователя на ресурс.
 
     :param user_id: Идентификатор пользователя.
     :param resource_id: Идентификатор ресурса.
+    :param category_id: Идентификатор категории.
     :return: True если такая подписка есть False если подписки нет.
     """
     async with session_scope() as session:
-        return bool(await get_subscription_repo(session, user_id, resource_id))
+        return bool(await get_subscription_repo(session, user_id, resource_id, category_id))
 
 
-async def subscribe_user(user_id: int, resource_id: str) -> None:
+async def subscribe_user(user_id: int, resource_id: str, category_id: str) -> None:
     """
     Подписывает пользователя на ресурс.
 
@@ -71,18 +72,19 @@ async def subscribe_user(user_id: int, resource_id: str) -> None:
     :param resource_id: Идентификатор ресурса.
     """
     async with session_scope() as session:
-        await subscribe_user_repo(session, user_id, resource_id)
+        await subscribe_user_repo(session, user_id, resource_id, category_id)
 
 
-async def unsubscribe_user(user_id: int, resource_id: str) -> None:
+async def unsubscribe_user(user_id: int, resource_id: str, category_id: str) -> None:
     """
     Отменяет подписку пользователя на ресурс.
 
     :param user_id: Идентификатор пользователя.
     :param resource_id: Идентификатор ресурса.
+    :param category_id: Идентификатор категории.
     """
     async with session_scope() as session:
-        subscription = await get_subscription_repo(session, user_id, resource_id)
+        subscription = await get_subscription_repo(session, user_id, resource_id, category_id)
         await delete_subscription_repo(session, subscription)
 
 
@@ -95,3 +97,14 @@ async def get_news_source(resource_id: str) -> Resource:
     """
     async with session_scope() as session:
         return await get_news_resource_repo(session, resource_id)
+
+
+async def get_category_by_id(category_id: str) -> Category:
+    """
+    Получение категории по id.
+
+    :param category_id: Идентификатор категории.
+    :return: Объект Category
+    """
+    async with session_scope() as session:
+        return await get_category_by_id_repo(session, category_id)
