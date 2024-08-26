@@ -6,10 +6,10 @@ from selenium.webdriver.common.by import By
 from app.logging import logger
 
 from .base import ThreadSeleniumParser
-from .mixins import NewsListProcessDataMixin, ProcesCategoryDataMixin, ProcesNewsContentDataMixin
+from .mixins import NewsListProcessDataMixin, CategoryProcessDataMixin, NewsContentProcessDataMixin
 
 
-class YandexNewsMainPageParser(ProcesCategoryDataMixin, ThreadSeleniumParser):
+class YandexNewsMainPageParser(CategoryProcessDataMixin, ThreadSeleniumParser):
     """Парсер категорий с яндекс новостей."""
 
     def parse(self) -> None:
@@ -32,7 +32,7 @@ class YandexNewsMainPageParser(ProcesCategoryDataMixin, ThreadSeleniumParser):
             # TODO добавить отправку сообщения администратору
 
 
-class YandexNewsDetailParser(ProcesNewsContentDataMixin, ThreadSeleniumParser):
+class YandexNewsDetailParser(NewsContentProcessDataMixin, ThreadSeleniumParser):
     """Парсер детальной информации о новости."""
 
     def parse(self) -> None:

@@ -49,7 +49,7 @@ class BaseParser(ABC):
         pass
 
     @abstractmethod
-    async def proces_data(self) -> None:
+    async def process_data(self) -> None:
         """Метод для обработки данных например записи в БД."""
         pass
 
@@ -133,5 +133,5 @@ class aiohttpParser(BaseParser):
                 async with session.get(self.url) as response:
                     response.raise_for_status()
                     self._data = await response.text()
-        except aiohttp.ClientError:
-            logger.warning(f'Не удалось получить страницу по адресу {self.url}')
+        except aiohttp.ClientError as e:
+            logger.warning(f'Не удалось получить страницу по адресу {self.url}. Error: {e}')

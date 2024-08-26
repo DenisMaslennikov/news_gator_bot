@@ -16,12 +16,13 @@ from app.db.repo import (
 from app.db.session import session_scope
 from app.logging import logger
 from app.queue import add_task_to_parse_queue
+import app.parsers
 
 
-class ProcesCategoryDataMixin:
+class CategoryProcessDataMixin:
     """Сохранение спарсеных категорий в базу данных."""
 
-    async def proces_data(self) -> None:
+    async def process_data(self) -> None:
         """Обновляет спарсенные данные в базе данных."""
         await logger.debug(f'Сохраняю спарсенные c {self.url} данные в базе данных')
         async with session_scope() as session:
@@ -31,10 +32,10 @@ class ProcesCategoryDataMixin:
             resource.update_datetime = datetime.datetime.now()
 
 
-class ProcesNewsContentDataMixin:
+class NewsContentProcessDataMixin:
     """Сохранение спарсеной новости в базу данных."""
 
-    async def proces_data(self) -> None:
+    async def process_data(self) -> None:
         """Сохранение спарсенной новости в базу данных."""
         if hasattr(self, 'content') and self.content:
             await logger.debug(f'Сохраняем спарсенную новость в базу {self.url}')
@@ -42,6 +43,8 @@ class ProcesNewsContentDataMixin:
                 news = await get_news_by_url_repo(session, self.url)
                 news.content = self.content
                 news.parsed_at = datetime.datetime.now()
+                news.published_at = getattr(self, 'published_at', None)
+                # images = getattr(self, 'images', None)
         else:
             await logger.debug(f'Контент не получен нечего сохранять в бд {self.url}')
 
@@ -50,7 +53,7 @@ class NewsListProcessDataMixin:
     """Миксин обработки списка новостей."""
     lock = asyncio.Lock()
 
-    async def proces_data(self) -> None:
+    async def process_data(self) -> None:
         """Сохранение спаршенных данных о новостях."""
         await logger.debug(f'Сохраняем спарсенные c {self.url} данные')
         news_list = []
@@ -75,4 +78,6 @@ class NewsListProcessDataMixin:
                         await session.flush()
                     await add_remote_category_to_news_repo(session, remote_category.id, news.id)
         for news in news_list:
-            await add_task_to_parse_queue(news.news_url, YandexNewsDetailParser)
+            await add_task_to_parse_queue(news.news_url, getattr(
+                app.parsers, remote_category.resource.detailed_parser.parser_class
+            ))

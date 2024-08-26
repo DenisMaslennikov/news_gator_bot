@@ -1,6 +1,6 @@
 from .base import BaseParser
 from .mskagency import MskagencyMainPageParser
-from .ria_news import RIANewsMainPageParser
+from .ria_news import RIANewsMainPageParser, RIANewsDetailParser, RIANewsCategoryParser
 from .yandex_news import (
     YandexNewsCategoryParser,
     YandexNewsCategoryWithSubCategoriesParser,
@@ -16,4 +16,6 @@ __all__ = [
     'MskagencyMainPageParser',
     'RIANewsMainPageParser',
     'YandexNewsDetailParser',
+    'RIANewsDetailParser',
+    'RIANewsCategoryParser',
 ]

@@ -21,3 +21,7 @@ class MskagencyMainPageParser(NewsListProcessDataMixin, aiohttpParser):
             print(news_blocks)
         else:
             logger.debug(f'Нет данных для {self.url} нечего парсить')
+
+
+    async def process_data(self) -> None:
+        pass

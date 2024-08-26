@@ -6,7 +6,7 @@ import fake_useragent
 from sqlalchemy.orm import joinedload
 
 import app.parsers
-from app.config.constants import MAX_SELENIUM_TASKS
+from app.config.constants import MAX_SELENIUM_TASKS, MAX_AIOHTTP_TASKS
 from app.db.models import Resource
 from app.db.models.news_feed import RemoteCategory
 from app.db.repo import (
@@ -17,10 +17,11 @@ from app.db.repo import (
 )
 from app.db.session import session_scope
 from app.logging import logger
-from app.parsers.base import BaseParser, ThreadSeleniumParser
+from app.parsers.base import BaseParser, ThreadSeleniumParser, aiohttpParser
 from app.queue import get_task_from_parse_queue
 
 selenium_semaphore = asyncio.Semaphore(MAX_SELENIUM_TASKS)
+aiohttp_semophore = asyncio.Semaphore(MAX_AIOHTTP_TASKS)
 
 
 def get_parser(parser_name: str) -> Type[BaseParser]:
@@ -111,13 +112,18 @@ async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:
     """
     if issubclass(parser_class, ThreadSeleniumParser):
         await selenium_semaphore.acquire()
+    if issubclass(parser_class, aiohttpParser):
+        await aiohttp_semophore.acquire()
+        await asyncio.sleep(1)
     try:
         parse = parser_class(url, fake_useragent.UserAgent(browsers='chrome', platforms='pc').random)
         await parse.fetch_data()
         await asyncio.sleep(0)
         parse.parse()
-        await parse.proces_data()
+        await parse.process_data()
     finally:
         if issubclass(parser_class, ThreadSeleniumParser):
             parse.close()
             selenium_semaphore.release()
+        if issubclass(parser_class, aiohttpParser):
+            aiohttp_semophore.release()
