@@ -2,7 +2,7 @@ INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (2, 'Ин
 INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (3, 'Политика', NULL);
 INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (4, 'Общество', NULL);
 INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (5, 'Экономика', NULL);
-INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (6, 'СВО', NULL);
+INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (6, 'Армия', NULL);
 INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (7, 'В мире', NULL);
 INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (8, 'Спорт', NULL);
 INSERT INTO "cl_categories" ("id", "name", "deletion_datetime") VALUES (9, 'Шоу-бизнес', NULL);

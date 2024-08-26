@@ -1,5 +1,6 @@
 import asyncio
-from datetime import datetime
+import random
+from datetime import datetime, timedelta
 from typing import Type
 
 import fake_useragent
@@ -54,7 +55,9 @@ async def create_category_parse_tasks() -> None:
         categories_for_update = await get_categories_for_update_repo(session, joinedload(RemoteCategory.parser))
 
         for category in categories_for_update:
-            category.update_datetime = datetime.now()
+            category.update_datetime = datetime.now() + timedelta(
+                seconds=random.randint(0, 2 * int(category.update_interval.total_seconds()))
+            )
             await create_parse_task(category.url, get_parser(category.parser.parser_class))
 
 
@@ -114,7 +117,6 @@ async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:
         await selenium_semaphore.acquire()
     if issubclass(parser_class, aiohttpParser):
         await aiohttp_semophore.acquire()
-        await asyncio.sleep(1)
     try:
         parse = parser_class(url, fake_useragent.UserAgent(browsers='chrome', platforms='pc').random)
         await parse.fetch_data()
