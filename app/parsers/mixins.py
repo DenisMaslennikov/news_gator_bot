@@ -78,6 +78,10 @@ class NewsListProcessDataMixin:
                         await session.flush()
                     await add_remote_category_to_news_repo(session, remote_category.id, news.id)
         for news in news_list:
-            await add_task_to_parse_queue(news.news_url, getattr(
-                app.parsers, remote_category.resource.detailed_parser.parser_class
-            ))
+            try:
+                await add_task_to_parse_queue(news.news_url, getattr(
+                    app.parsers, remote_category.resource.detailed_parser.parser_class
+                ), remote_category.resource.id)
+            except AttributeError:
+                logger.warning(f'Парсер {remote_category.resource.detailed_parser.parser_class} не найден')
+                # TODO отправка сообщения в телеграм

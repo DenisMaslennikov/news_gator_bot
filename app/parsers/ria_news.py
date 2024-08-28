@@ -76,6 +76,17 @@ class RIANewsCategoryParser(NewsListProcessDataMixin, aiohttpParser):
             self.titles = titles
             self.descriptions = descriptions
             self.images_urls = images_urls
+            if not all([descriptions, titles, urls, images_urls]):
+                logger.warning(f'Ошибка парсинга категории {self.url} парсером {self.__class__} получены не все данные')
+                if not descriptions:
+                    logger.warning('Не получено описание')
+                if not titles:
+                    logger.warning('Не получены заголовки')
+                if not urls:
+                    logger.warning('Не получены ссылки')
+                if not images_urls:
+                    logger.warning('Не получены изображения')
+                # TODO отправка сообщения
         else:
             logger.debug(f'Нет данных для {self.url} нечего парсить')
 

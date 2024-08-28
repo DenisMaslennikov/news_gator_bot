@@ -1,5 +1,6 @@
 import asyncio
 import random
+import uuid
 from datetime import datetime, timedelta
 from typing import Type
 
@@ -19,9 +20,7 @@ from app.db.repo import (
 from app.db.session import async_session_scope, session_scope
 from app.logging import logger
 from app.parsers.base import BaseParser, ThreadSeleniumParser, aiohttpParser
-from app.queue import get_task_from_parse_queue
-
-
+from app.queue import get_task_from_parse_queue, add_task_to_parse_queue
 
 with session_scope() as session:
     # Получаем лимиты для парсеров в зависимости от ресурса.
@@ -61,7 +60,7 @@ async def create_resource_parse_tasks() -> None:
 
         for resource in resources_for_update:
             resource.update_datetime = datetime.now()
-            await create_parse_task(resource.url, get_parser(resource.parser.parser_class))
+            await add_task_to_parse_queue(resource.url, get_parser(resource.parser.parser_class), resource.id)
 
 
 async def create_category_parse_tasks() -> None:
@@ -73,7 +72,7 @@ async def create_category_parse_tasks() -> None:
             category.update_datetime = datetime.now() + timedelta(
                 seconds=random.randint(0, 2 * int(category.update_interval.total_seconds()))
             )
-            await create_parse_task(category.url, get_parser(category.parser.parser_class))
+            await add_task_to_parse_queue(category.url, get_parser(category.parser.parser_class), category.resource_id)
 
 
 async def parse_resources_loop() -> None:
@@ -100,7 +99,7 @@ async def parse_categories_loop() -> None:
             await create_category_parse_tasks()
 
 
-async def create_parse_task(url: str, parser_class: Type[BaseParser]) -> None:
+async def create_parse_task(url: str, parser_class: Type[BaseParser], resource_id: uuid.UUID) -> None:
     """
     Создает асинхронную таску парсинга новости.
 
@@ -108,7 +107,7 @@ async def create_parse_task(url: str, parser_class: Type[BaseParser]) -> None:
     :param parser_class: Класс парсера.
     """
     loop = asyncio.get_running_loop()
-    loop.create_task(_parse_task(parser_class, url))
+    loop.create_task(_parse_task(parser_class, url, resource_id))
 
 
 async def parse_queue_loop() -> None:
@@ -117,10 +116,10 @@ async def parse_queue_loop() -> None:
         await logger.debug('Жду задачу парсинга')
         task = await get_task_from_parse_queue()
         await logger.debug(f'создаю таску для парсинга по адресу {task.url}')
-        await create_parse_task(task.url, task.parser_class)
+        await create_parse_task(task.url, task.parser_class, task.resource_id)
 
 
-async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:
+async def _parse_task(parser_class: Type[BaseParser], url: str, resource_id: uuid.UUID) -> None:
     """
     Обработчик задачи парсинга.
 
@@ -128,6 +127,8 @@ async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:
     :param url: Ссылка которую необходимо спарсить.
 
     """
+    if limits.get(resource_id) is not None:
+        await limits.get(resource_id).get('semaphore').acquire()
     if issubclass(parser_class, ThreadSeleniumParser):
         await selenium_semaphore.acquire()
     if issubclass(parser_class, aiohttpParser):
@@ -139,8 +140,12 @@ async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:
         parse.parse()
         await parse.process_data()
     finally:
+        if limits.get(resource_id) is not None:
+            await asyncio.sleep(limits.get(resource_id).get('sleep_timeout'))
+            limits.get(resource_id).get('semaphore').release()
         if issubclass(parser_class, ThreadSeleniumParser):
             parse.close()
             selenium_semaphore.release()
         if issubclass(parser_class, aiohttpParser):
             aiohttp_semaphore.release()
+

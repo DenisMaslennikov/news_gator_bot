@@ -139,16 +139,16 @@ async def get_news_resources_repo(session: AsyncSession) -> Sequence[Resource]:
     return result.scalars().all()
 
 
-async def add_remote_categories_repo(session: AsyncSession, name: str, url: str, news_resource_id: uuid.UUID) -> None:
+async def add_remote_categories_repo(session: AsyncSession, name: str, url: str, resource_id: uuid.UUID) -> None:
     """
     Добавляет новую удаленную категорию если она еще не существует.
 
     :param session: Объект сессии SQLAlchemy
     :param name: Название категории
     :param url: Ссылка на страницу категории.
-    :param news_resource_id: Идентификатор новостного ресурса.
+    :param resource_id: Идентификатор новостного ресурса.
     """
-    await get_or_create(session, RemoteCategory, name=name, url=url, news_resource_id=news_resource_id)
+    await get_or_create(session, RemoteCategory, name=name, url=url, resource_id=resource_id)
 
 
 async def get_resource_by_url_repo(session: AsyncSession, url: str) -> Resource:
@@ -335,7 +335,7 @@ async def get_news_for_send_repo(session: AsyncSession) -> Sequence[Row]:
         Resource, Resource.id == UserSubscription.resource_id,
     ).join(
         RemoteCategory, (RemoteCategory.category_id == Category.id)
-                        & (RemoteCategory.news_resource_id == Resource.id),
+                        & (RemoteCategory.resource_id == Resource.id),
     ).join(
         NewsRemoteCategory, NewsRemoteCategory.remote_category_id == RemoteCategory.id,
     ).join(
@@ -371,7 +371,7 @@ async def get_categories_for_resources_repo(session: AsyncSession, resource_id: 
     stmt = select(Category).join(
         RemoteCategory, RemoteCategory.category_id == Category.id,
     ).where(
-        RemoteCategory.news_resource_id == resource_id,
+        RemoteCategory.resource_id == resource_id,
         or_(
             Category.deletion_datetime.is_(None),
             Category.deletion_datetime > datetime.now()

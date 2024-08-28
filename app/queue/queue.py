@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import uuid
 from collections import namedtuple
+from typing import Type
 
 _parsing_queue = asyncio.Queue()
 _message_queue = asyncio.Queue()
@@ -10,17 +11,17 @@ MessageTask = namedtuple('MessageTask', [
     'user_id', 'news_title', 'news_content', 'news_date', 'news_id', 'news_url',
 ])
 
-ParsingTask = namedtuple('ParsingTask', ['url', 'parser_class'])
+ParsingTask = namedtuple('ParsingTask', ['url', 'parser_class', 'resource_id'])
 
 
-async def add_task_to_parse_queue(url: str, parser_class) -> None:
+async def add_task_to_parse_queue(url: str, parser_class, resource_id: uuid.UUID) -> None:
     """
     Добавляет страницу и класс парсера в очередь парсинга.
 
     :param url: URL страницы которую необходимо спарсить.
     :param parser_class: Класс парсера для парсинга новости.
     """
-    await _parsing_queue.put(ParsingTask(url, parser_class))
+    await _parsing_queue.put(ParsingTask(url, parser_class, resource_id))
 
 
 async def get_task_from_parse_queue() -> ParsingTask:

@@ -78,8 +78,14 @@ class YandexNewsCategoryParser(NewsListProcessDataMixin, ThreadSeleniumParser):
             except NoSuchElementException:
                 images_urls.append(None)
                 logger.debug('Не найдено изображение для новости')
-            descriptions.append(news_block.find_element(By.CSS_SELECTOR, description_css_selector).text)
-            titles.append(news_block.find_element(By.CSS_SELECTOR, title_css_selector).text)
+            try:
+                descriptions.append(news_block.find_element(By.CSS_SELECTOR, description_css_selector).text)
+            except NoSuchElementException:
+                logger.warning(f'Не найден дескрипшен к новости {self.url}')
+            try:
+                titles.append(news_block.find_element(By.CSS_SELECTOR, title_css_selector).text)
+            except NoSuchElementException:
+                logger.warning(f'Не найден тайтл к новости {self.url}')
             url_block = news_block.find_element(By.TAG_NAME, 'a')
             split_url = urlsplit(url_block.get_attribute('href'))
             urls.append(f'{split_url.scheme}://{split_url.netloc}{split_url.path}')
