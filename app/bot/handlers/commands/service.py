@@ -12,7 +12,7 @@ from app.db.repo import (
     register_user_repo,
     subscribe_user_repo,
 )
-from app.db.session import session_scope
+from app.db.session import async_session_scope
 
 
 async def register_user(user_id: int) -> bool:
@@ -22,7 +22,7 @@ async def register_user(user_id: int) -> bool:
     :param user_id: Идентификатор пользователя.
     :return: Строка со статусом регистрации.
     """
-    async with session_scope() as session:
+    async with async_session_scope() as session:
         return await register_user_repo(session, user_id)
 
 
@@ -33,7 +33,7 @@ async def delete_user(user_id: int) -> bool:
     :param user_id: Идентификатор пользователя.
     :return: True если пользователь удален и False если пользователь не найден.
     """
-    async with session_scope() as session:
+    async with async_session_scope() as session:
         user = await get_user_repo(session, user_id, subqueryload(User.subscriptions))
         if user:
             await delete_all_user_subscriptions_repo(session, user)
@@ -48,7 +48,7 @@ async def get_user(user_id: int) -> User | None:
 
     :param user_id: Идентификатор пользователя
     """
-    async with session_scope() as session:
+    async with async_session_scope() as session:
         return await get_user_repo(session, user_id)
 
 
@@ -61,7 +61,7 @@ async def subscription_status(user_id: int, resource_id: str, category_id: str) 
     :param category_id: Идентификатор категории.
     :return: True если такая подписка есть False если подписки нет.
     """
-    async with session_scope() as session:
+    async with async_session_scope() as session:
         return bool(await get_subscription_repo(session, user_id, resource_id, category_id))
 
 
@@ -72,7 +72,7 @@ async def subscribe_user(user_id: int, resource_id: str, category_id: str) -> No
     :param user_id: Идентификатор пользователя.
     :param resource_id: Идентификатор ресурса.
     """
-    async with session_scope() as session:
+    async with async_session_scope() as session:
         await subscribe_user_repo(session, user_id, resource_id, category_id)
 
 
@@ -84,7 +84,7 @@ async def unsubscribe_user(user_id: int, resource_id: str, category_id: str) -> 
     :param resource_id: Идентификатор ресурса.
     :param category_id: Идентификатор категории.
     """
-    async with session_scope() as session:
+    async with async_session_scope() as session:
         subscription = await get_subscription_repo(session, user_id, resource_id, category_id)
         await delete_subscription_repo(session, subscription)
 
@@ -96,7 +96,7 @@ async def get_news_source(resource_id: str) -> Resource:
     :param resource_id: Идентификатор новостного ресурса.
     :return: Объект Resource.
     """
-    async with session_scope() as session:
+    async with async_session_scope() as session:
         return await get_news_resource_repo(session, resource_id)
 
 
@@ -107,5 +107,5 @@ async def get_category_by_id(category_id: str) -> Category:
     :param category_id: Идентификатор категории.
     :return: Объект Category
     """
-    async with session_scope() as session:
+    async with async_session_scope() as session:
         return await get_category_by_id_repo(session, category_id)

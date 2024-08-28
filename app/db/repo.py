@@ -4,6 +4,7 @@ from typing import Sequence
 
 from sqlalchemy import Row, func, insert, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from app.config.constants import NEWS_ACTUAL_TIME
 from app.db.models import Category, Resource, User, UserSubscription
@@ -391,3 +392,21 @@ async def get_category_by_id_repo(session: AsyncSession, category_id: str) -> Ca
     stmt = select(Category).where(Category.id == int(category_id))
     result = await session.execute(stmt)
     return result.scalar()
+
+
+def get_parser_limits_repo(session: Session) -> Sequence[Row]:
+    """
+    Получает список ресурсов для которых установлено ограничение на парсинг.
+
+    :param session: Объект сесси SQLAlchemy.
+    :return: Список рессурсов
+    """
+    stmt = select(
+        Resource.id.label('resource_id'),
+        Resource.parser_task_limit.label('task_limit'),
+        func.coalesce(Resource.parser_sleep_timout, 0).label('sleep_timout'),
+    ).filter(
+        Resource.parser_task_limit.isnot(None),
+    )
+    result = session.execute(stmt)
+    return result.all()

@@ -35,6 +35,10 @@ class Resource(Base):
         nullable=False,
         comment='Идентификатор типа новостного ресурса',
     )
+    parser_task_limit = Column(
+        SmallInteger, comment='Максимальное количество одновременных задач парсинга', nullable=True,
+    )
+    parser_sleep_timout = Column(SmallInteger, comment='Интервал времени между задачами парсинга', nullable=True)
 
     parser = relationship('Parser', back_populates='resources', foreign_keys='[Resource.parser_id]')
     detailed_parser = relationship(

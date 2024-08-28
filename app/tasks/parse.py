@@ -14,34 +14,49 @@ from app.db.repo import (
     get_categories_for_update_repo,
     get_categories_timeout_repo,
     get_resource_timeout_repo,
-    get_resources_for_update_repo,
+    get_resources_for_update_repo, get_parser_limits_repo,
 )
-from app.db.session import session_scope
+from app.db.session import async_session_scope, session_scope
 from app.logging import logger
 from app.parsers.base import BaseParser, ThreadSeleniumParser, aiohttpParser
 from app.queue import get_task_from_parse_queue
 
+
+
+with session_scope() as session:
+    # Получаем лимиты для парсеров в зависимости от ресурса.
+    resources_with_limits = get_parser_limits_repo(session)
+    limits ={resource.resource_id: {
+        'semaphore': asyncio.Semaphore(resource.tasks_limit),
+        'sleep_timeout': resource.sleep_timeout,
+    }
+
+    for resource in resources_with_limits}
+
+
 selenium_semaphore = asyncio.Semaphore(MAX_SELENIUM_TASKS)
-aiohttp_semophore = asyncio.Semaphore(MAX_AIOHTTP_TASKS)
+aiohttp_semaphore = asyncio.Semaphore(MAX_AIOHTTP_TASKS)
 
 
-def get_parser(parser_name: str) -> Type[BaseParser]:
+def get_parser(parser_name: str) -> Type[BaseParser] | None:
     """
     Получает класс парсера по названию.
 
     :param parser_name: Название класса парсера.
     :return: Класс парсера по названию.
     """
-    parser_class = getattr(app.parsers, parser_name)
-    if not parser_class:
+    try:
+        parser_class = getattr(app.parsers, parser_name)
+    except AttributeError:
         logger.warning(f'Неизвестный класс парсера {parser_name}')
+        parser_class = None
         # TODO Добавить отправку сообщения
     return parser_class
 
 
 async def create_resource_parse_tasks() -> None:
     """Создание задач для парсинга ресурсов."""
-    async with session_scope() as session:
+    async with async_session_scope() as session:
         resources_for_update = await get_resources_for_update_repo(session, joinedload(Resource.parser))
 
         for resource in resources_for_update:
@@ -51,7 +66,7 @@ async def create_resource_parse_tasks() -> None:
 
 async def create_category_parse_tasks() -> None:
     """Создание задач для парсинга категорий."""
-    async with session_scope() as session:
+    async with async_session_scope() as session:
         categories_for_update = await get_categories_for_update_repo(session, joinedload(RemoteCategory.parser))
 
         for category in categories_for_update:
@@ -64,7 +79,7 @@ async def create_category_parse_tasks() -> None:
 async def parse_resources_loop() -> None:
     """Цикл создания заданий парсинга ресурсов."""
     while True:
-        async with session_scope() as session:
+        async with async_session_scope() as session:
             sleep_interval = (await get_resource_timeout_repo(session)).total_seconds()
             if sleep_interval < 0:
                 sleep_interval = 0
@@ -76,7 +91,7 @@ async def parse_resources_loop() -> None:
 async def parse_categories_loop() -> None:
     """Цикл задач парсинга категорий."""
     while True:
-        async with session_scope() as session:
+        async with async_session_scope() as session:
             sleep_interval = (await get_categories_timeout_repo(session)).total_seconds()
             if sleep_interval < 0:
                 sleep_interval = 0
@@ -116,7 +131,7 @@ async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:
     if issubclass(parser_class, ThreadSeleniumParser):
         await selenium_semaphore.acquire()
     if issubclass(parser_class, aiohttpParser):
-        await aiohttp_semophore.acquire()
+        await aiohttp_semaphore.acquire()
     try:
         parse = parser_class(url, fake_useragent.UserAgent(browsers='chrome', platforms='pc').random)
         await parse.fetch_data()
@@ -128,4 +143,4 @@ async def _parse_task(parser_class: Type[BaseParser], url: str) -> None:
             parse.close()
             selenium_semaphore.release()
         if issubclass(parser_class, aiohttpParser):
-            aiohttp_semophore.release()
+            aiohttp_semaphore.release()
