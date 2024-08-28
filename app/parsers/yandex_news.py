@@ -64,9 +64,9 @@ class YandexNewsCategoryParser(NewsListProcessDataMixin, ThreadSeleniumParser):
         logger.debug(f'Распарсиваем страницу категории {self.url}')
         news_feed_class_name = 'news-site--Feed-desktop__list-3q'
         news_feed_block = self._driver.find_element(By.CLASS_NAME, news_feed_class_name)
-        news_block_css_selector = ".mg-card__shown-card[class*='news-card2-'][class*='__show-']"
-        description_css_selector = "[class^='news-card2-'][class$='__annotation']"
-        title_css_selector = "[class^='news-card2-'][class$='__title']"
+        news_block_css_selector = ".news-site--ShownCard__shownCard-1f"
+        description_css_selector = ".news-card__annotation"
+        title_css_selector = ".news-card__title"
         news_blocks = news_feed_block.find_elements(By.CSS_SELECTOR, news_block_css_selector)
         images_urls = []
         titles = []
@@ -89,6 +89,14 @@ class YandexNewsCategoryParser(NewsListProcessDataMixin, ThreadSeleniumParser):
         self.images_urls = images_urls
         if not all([descriptions, titles, urls, images_urls]):
             logger.warning(f'Ошибка парсинга категории {self.url} парсером {self.__class__} получены не все данные')
+            if not descriptions:
+                logger.warning('Не получено описание')
+            if not titles:
+                logger.warning('Не получены заголовки')
+            if not urls:
+                logger.warning('Не получены ссылки')
+            if not images_urls:
+                logger.warning('Не получены изображения')
             # TODO Добавить сообщение
 
 

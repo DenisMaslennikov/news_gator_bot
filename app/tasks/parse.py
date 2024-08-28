@@ -27,8 +27,8 @@ with session_scope() as session:
     # Получаем лимиты для парсеров в зависимости от ресурса.
     resources_with_limits = get_parser_limits_repo(session)
     limits ={resource.resource_id: {
-        'semaphore': asyncio.Semaphore(resource.tasks_limit),
-        'sleep_timeout': resource.sleep_timeout,
+        'semaphore': asyncio.Semaphore(resource.task_limit),
+        'sleep_timeout': resource.sleep_timout,
     }
 
     for resource in resources_with_limits}
