@@ -3,6 +3,7 @@ import datetime
 
 from sqlalchemy.orm import joinedload
 
+import app.parsers
 from app.db.models import Resource
 from app.db.models.news_feed import RemoteCategory
 from app.db.repo import (
@@ -16,7 +17,6 @@ from app.db.repo import (
 from app.db.session import async_session_scope
 from app.logging import logger
 from app.queue import add_task_to_parse_queue
-import app.parsers
 
 
 class CategoryProcessDataMixin:

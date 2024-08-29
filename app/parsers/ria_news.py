@@ -45,14 +45,15 @@ class RIANewsDetailParser(NewsContentProcessDataMixin, aiohttpParser):
             block = soup.find('div', class_=re.compile(r'layout-article__\d*-align'))
             self.content = block.select_one('div.article__body.js-mediator-article.mia-analytics').text
 
-
         else:
             logger.debug(f'Нет данных для {self.url} нечего парсить')
+
 
 class RIANewsCategoryParser(NewsListProcessDataMixin, aiohttpParser):
     """Парсер списка новостей со страницы категории РИА Новостей."""
 
     def parse(self) -> None:
+        """Парсит новости с категории РИА Новостей."""
         if hasattr(self, '_data') and self._data is not None:
             logger.debug(f'Парсим новости с категории РИА новостей {self.url}')
             soup = BeautifulSoup(self._data, 'lxml')
@@ -89,4 +90,3 @@ class RIANewsCategoryParser(NewsListProcessDataMixin, aiohttpParser):
                 # TODO отправка сообщения
         else:
             logger.debug(f'Нет данных для {self.url} нечего парсить')
-

@@ -2,7 +2,6 @@ import asyncio
 import datetime
 import uuid
 from collections import namedtuple
-from typing import Type
 
 _parsing_queue = asyncio.Queue()
 _message_queue = asyncio.Queue()

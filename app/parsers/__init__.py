@@ -1,6 +1,6 @@
 from .base import BaseParser
 from .mskagency import MskagencyMainPageParser
-from .ria_news import RIANewsMainPageParser, RIANewsDetailParser, RIANewsCategoryParser
+from .ria_news import RIANewsCategoryParser, RIANewsDetailParser, RIANewsMainPageParser
 from .yandex_news import (
     YandexNewsCategoryParser,
     YandexNewsCategoryWithSubCategoriesParser,

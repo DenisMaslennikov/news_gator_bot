@@ -8,24 +8,25 @@ import fake_useragent
 from sqlalchemy.orm import joinedload
 
 import app.parsers
-from app.config.constants import MAX_SELENIUM_TASKS, MAX_AIOHTTP_TASKS
+from app.config.constants import MAX_AIOHTTP_TASKS, MAX_SELENIUM_TASKS
 from app.db.models import Resource
 from app.db.models.news_feed import RemoteCategory
 from app.db.repo import (
     get_categories_for_update_repo,
     get_categories_timeout_repo,
+    get_parser_limits_repo,
     get_resource_timeout_repo,
-    get_resources_for_update_repo, get_parser_limits_repo,
+    get_resources_for_update_repo,
 )
 from app.db.session import async_session_scope, session_scope
 from app.logging import logger
 from app.parsers.base import BaseParser, ThreadSeleniumParser, aiohttpParser
-from app.queue import get_task_from_parse_queue, add_task_to_parse_queue
+from app.queue import add_task_to_parse_queue, get_task_from_parse_queue
 
 with session_scope() as session:
     # Получаем лимиты для парсеров в зависимости от ресурса.
     resources_with_limits = get_parser_limits_repo(session)
-    limits ={resource.resource_id: {
+    limits = {resource.resource_id: {
         'semaphore': asyncio.Semaphore(resource.task_limit),
         'sleep_timeout': resource.sleep_timout,
     }
@@ -125,7 +126,6 @@ async def _parse_task(parser_class: Type[BaseParser], url: str, resource_id: uui
 
     :param parser_class: Класс парсера для обработки url.
     :param url: Ссылка которую необходимо спарсить.
-
     """
     if limits.get(resource_id) is not None:
         await limits.get(resource_id).get('semaphore').acquire()
@@ -148,4 +148,3 @@ async def _parse_task(parser_class: Type[BaseParser], url: str, resource_id: uui
             selenium_semaphore.release()
         if issubclass(parser_class, aiohttpParser):
             aiohttp_semaphore.release()
-

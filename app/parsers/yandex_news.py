@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from app.logging import logger
 
 from .base import ThreadSeleniumParser
-from .mixins import NewsListProcessDataMixin, CategoryProcessDataMixin, NewsContentProcessDataMixin
+from .mixins import CategoryProcessDataMixin, NewsContentProcessDataMixin, NewsListProcessDataMixin
 
 
 class YandexNewsMainPageParser(CategoryProcessDataMixin, ThreadSeleniumParser):
@@ -64,14 +64,16 @@ class YandexNewsCategoryParser(NewsListProcessDataMixin, ThreadSeleniumParser):
         logger.debug(f'Распарсиваем страницу категории {self.url}')
         news_feed_class_name = 'news-site--Feed-desktop__list-3q'
         news_feed_block = self._driver.find_element(By.CLASS_NAME, news_feed_class_name)
-        news_block_css_selector = ".news-site--ShownCard__shownCard-1f"
-        description_css_selector = ".news-card__annotation"
-        title_css_selector = ".news-card__title"
+        news_block_css_selector = '.news-site--ShownCard__shownCard-1f'
+        description_css_selector = '.news-card__annotation'
+        title_css_selector = '.news-card__title'
         news_blocks = news_feed_block.find_elements(By.CSS_SELECTOR, news_block_css_selector)
         images_urls = []
         titles = []
         descriptions = []
         urls = []
+        if not news_blocks:
+            logger.warning(f'Блок с новостями не найден {self.url}')
         for news_block in news_blocks:
             try:
                 images_urls.append(news_block.find_element(By.TAG_NAME, 'img').get_attribute('src'))
@@ -86,6 +88,8 @@ class YandexNewsCategoryParser(NewsListProcessDataMixin, ThreadSeleniumParser):
                 titles.append(news_block.find_element(By.CSS_SELECTOR, title_css_selector).text)
             except NoSuchElementException:
                 logger.warning(f'Не найден тайтл к новости {self.url}')
+                logger.warning(news_block.get_attribute('outerHTML'))
+                break
             url_block = news_block.find_element(By.TAG_NAME, 'a')
             split_url = urlsplit(url_block.get_attribute('href'))
             urls.append(f'{split_url.scheme}://{split_url.netloc}{split_url.path}')

@@ -22,6 +22,6 @@ class MskagencyMainPageParser(NewsListProcessDataMixin, aiohttpParser):
         else:
             logger.debug(f'Нет данных для {self.url} нечего парсить')
 
-
     async def process_data(self) -> None:
+        """Заглушка."""
         pass
