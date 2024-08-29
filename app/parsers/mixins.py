@@ -28,7 +28,7 @@ class CategoryProcessDataMixin:
         async with async_session_scope() as session:
             resource = await get_resource_by_url_repo(session, self.url)
             for category in self.categories:
-                await add_remote_categories_repo(session, **category, news_resource_id=resource.id)
+                await add_remote_categories_repo(session, **category, resource_id=resource.id)
             resource.update_datetime = datetime.datetime.now()
 
 
